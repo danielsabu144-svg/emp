@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - EMS{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">{{ title }}</h1>
+            <p class="page-subtitle">Fill in the details to launch a new company initiative.</p>
+        </div>
+        <a href="{% url 'project_list' %}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Back to Registry
+        </a>
+    </div>
+</div>
+
+<div class="row mt-4 justify-content-center">
+    <div class="col-12 col-lg-10">
+        <form method="post" class="card fade-in">
+            {% csrf_token %}
+            <div class="card-header bg-transparent border-bottom">
+                <h3 class="card-title"><i class="fas fa-edit me-2"></i>Project Details</h3>
+            </div>
+            <div class="card-body p-4">
+                <div class="row">
+                    <div class="col-12 mb-4">
+                        <label class="form-label">Project Name</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-12 mb-4">
+                        <label class="form-label">Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors
+                            }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-4">
+                        <label class="form-label">Client Name</label>
+                        {{ form.client_name }}
+                        {% if form.client_name.errors %}<div class="text-danger small mt-1">{{ form.client_name.errors
+                            }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label class="form-label">Current Status</label>
+                        {{ form.status }}
+                        {% if form.status.errors %}<div class="text-danger small mt-1">{{ form.status.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-4">
+                        <label class="form-label">Start Date</label>
+                        {{ form.start_date }}
+                        {% if form.start_date.errors %}<div class="text-danger small mt-1">{{ form.start_date.errors }}
+                        </div>{% endif %}
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label class="form-label">End Date (Goal)</label>
+                        {{ form.end_date }}
+                        {% if form.end_date.errors %}<div class="text-danger small mt-1">{{ form.end_date.errors }}
+                        </div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-4 border-top border-secondary d-flex flex-column flex-sm-row gap-3">
+                    <button type="submit" class="btn btn-primary px-5 btn-lg flex-grow-1">
+                        <i class="fas fa-save me-2"></i> Launch Project
+                    </button>
+                    <a href="{% url 'project_list' %}" class="btn btn-outline btn-lg">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

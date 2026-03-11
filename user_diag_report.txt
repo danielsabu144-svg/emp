@@ -1,0 +1,22 @@
+USER DIAGNOSIS REPORT
+====================
+Total Users: 18
+ID: 17 | Username: 'donjith' | Role: HR | SU: False | Active: True
+ID: 5 | Username: 'user2' | Role: EMPLOYEE | SU: False | Active: True
+ID: 6 | Username: 'user3' | Role: EMPLOYEE | SU: False | Active: True
+ID: 7 | Username: 'user4' | Role: EMPLOYEE | SU: False | Active: True
+ID: 8 | Username: 'user5' | Role: EMPLOYEE | SU: False | Active: True
+ID: 9 | Username: 'user6' | Role: EMPLOYEE | SU: False | Active: True
+ID: 10 | Username: 'user7' | Role: EMPLOYEE | SU: False | Active: True
+ID: 11 | Username: 'user8' | Role: EMPLOYEE | SU: False | Active: True
+ID: 12 | Username: 'user9' | Role: EMPLOYEE | SU: False | Active: True
+ID: 13 | Username: 'user10' | Role: EMPLOYEE | SU: False | Active: True
+ID: 1 | Username: 'admin' | Role: SUPERADMIN | SU: True | Active: True
+ID: 16 | Username: 'ananthu' | Role: EMPLOYEE | SU: False | Active: True
+ID: 15 | Username: 'aaa' | Role: EMPLOYEE | SU: False | Active: True
+ID: 4 | Username: 'user1' | Role: EMPLOYEE | SU: False | Active: True
+ID: 2 | Username: 'empadmin' | Role: EMPLOYEE | SU: True | Active: True
+ID: 3 | Username: 'desti' | Role: EMPLOYEE | SU: False | Active: True
+ID: 14 | Username: 'arya' | Role: HR | SU: False | Active: True
+ID: 18 | Username: 'alan' | Role: EMPLOYEE | SU: False | Active: True
+====================

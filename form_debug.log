@@ -1,0 +1,5 @@
+Role: EMPLOYEE
+User Valid: False
+User Errors: {"employee_id": [{"message": "User with this Employee id already exists.", "code": "unique"}]}
+Profile Valid: True
+Profile Errors: {}

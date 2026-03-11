@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block title %}My Attendance - Employee Management System{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">My Attendance</h1>
+            <p class="page-subtitle">Track your check-in, check-out, worked hours, and attendance flags for each workday.</p>
+        </div>
+        <div>
+            <form method="get" class="d-flex gap-2">
+                <select name="month" class="form-control form-control-sm">
+                    <option value="1" {% if month == 1 %}selected{% endif %}>January</option>
+                    <option value="2" {% if month == 2 %}selected{% endif %}>February</option>
+                    <option value="3" {% if month == 3 %}selected{% endif %}>March</option>
+                    <option value="4" {% if month == 4 %}selected{% endif %}>April</option>
+                    <option value="5" {% if month == 5 %}selected{% endif %}>May</option>
+                    <option value="6" {% if month == 6 %}selected{% endif %}>June</option>
+                    <option value="7" {% if month == 7 %}selected{% endif %}>July</option>
+                    <option value="8" {% if month == 8 %}selected{% endif %}>August</option>
+                    <option value="9" {% if month == 9 %}selected{% endif %}>September</option>
+                    <option value="10" {% if month == 10 %}selected{% endif %}>October</option>
+                    <option value="11" {% if month == 11 %}selected{% endif %}>November</option>
+                    <option value="12" {% if month == 12 %}selected{% endif %}>December</option>
+                </select>
+                <select name="year" class="form-control form-control-sm">
+                    <option value="2024" {% if year == 2024 %}selected{% endif %}>2024</option>
+                    <option value="2025" {% if year == 2025 %}selected{% endif %}>2025</option>
+                    <option value="2026" {% if year == 2026 %}selected{% endif %}>2026</option>
+                </select>
+                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4 g-3">
+    <div class="col-6 col-lg-2">
+        <div class="stat-card fade-in">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-value">{{ present_days }}</div>
+            <div class="stat-label">Full Days</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="stat-card fade-in" style="animation-delay: 0.1s;">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-value">{{ late_days }}</div>
+            <div class="stat-label">Late Entries</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="stat-card fade-in" style="animation-delay: 0.2s;">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #EF4444 0%, #B91C1C 100%);">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <div class="stat-value">{{ early_leave_days }}</div>
+            <div class="stat-label">Early Leaves</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="stat-card fade-in" style="animation-delay: 0.3s;">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #0EA5E9 0%, #1D4ED8 100%);">
+                <i class="fas fa-adjust"></i>
+            </div>
+            <div class="stat-value">{{ half_days }}</div>
+            <div class="stat-label">Half Days</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="stat-card fade-in" style="animation-delay: 0.4s;">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #DC2626 0%, #991B1B 100%);">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div class="stat-value">{{ absent_days }}</div>
+            <div class="stat-label">Absences</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="stat-card fade-in" style="animation-delay: 0.5s;">
+            <div class="stat-icon" style="background: var(--primary-gradient);">
+                <i class="fas fa-calendar"></i>
+            </div>
+            <div class="stat-value">{{ total_days }}</div>
+            <div class="stat-label">Total Records</div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4 fade-in">
+    <div class="card-header">
+        <h3 class="card-title">Attendance Entries</h3>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Check In</th>
+                        <th>Check Out</th>
+                        <th>Final Status</th>
+                        <th>Flags</th>
+                        <th>Working Hours</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attendance in attendances %}
+                    <tr>
+                        <td>{{ attendance.date|date:"l, M d, Y" }}</td>
+                        <td class="text-success"><i class="fas fa-sign-in-alt me-1"></i> {{ attendance.check_in|time:"h:i A"|default:"--" }}</td>
+                        <td class="text-danger"><i class="fas fa-sign-out-alt me-1"></i> {{ attendance.check_out|time:"h:i A"|default:"--" }}</td>
+                        <td>
+                            {% if attendance.final_status == 'PRESENT' %}
+                            <span class="badge badge-success">Present</span>
+                            {% elif attendance.final_status == 'LATE' %}
+                            <span class="badge badge-warning">Late</span>
+                            {% elif attendance.final_status == 'EARLY_LEAVE' %}
+                            <span class="badge badge-danger">Early Leave</span>
+                            {% elif attendance.final_status == 'LATE_EARLY_LEAVE' %}
+                            <span class="badge badge-warning">Late + Early Leave</span>
+                            {% elif attendance.final_status == 'HALF_DAY' %}
+                            <span class="badge badge-info">Half Day</span>
+                            {% else %}
+                            <span class="badge badge-danger">Absent</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if attendance.detection_labels %}
+                                {% for label in attendance.detection_labels %}
+                                    {% if label == 'Late' %}
+                                    <span class="badge badge-warning">{{ label }}</span>
+                                    {% elif label == 'Early Leave' %}
+                                    <span class="badge badge-danger">{{ label }}</span>
+                                    {% else %}
+                                    <span class="badge badge-info">{{ label }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                            <span class="text-muted small">--</span>
+                            {% endif %}
+                        </td>
+                        <td><strong>{{ attendance.get_work_hours.formatted }}</strong></td>
+                        <td class="text-muted small">{{ attendance.remarks|default:"--" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center p-5 text-muted">
+                            <i class="fas fa-calendar-times mb-3" style="font-size: 3rem; display: block;"></i>
+                            No attendance records found for this period.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

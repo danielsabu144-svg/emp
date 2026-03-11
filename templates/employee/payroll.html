@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}My Payroll - Employee Management System{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+    <div>
+        <h1 class="page-title">My Payroll History</h1>
+        <p class="page-subtitle">View and download your monthly salary slips.</p>
+    </div>
+</div>
+
+<div class="card mt-4 fade-in">
+    <div class="card-header">
+        <h3 class="card-title">Salary Records</h3>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Month / Year</th>
+                        <th>Basic Salary</th>
+                        <th>Net Salary</th>
+                        <th>Attendance</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in payrolls %}
+                    <tr>
+                        <td><strong>{{ p.month_name }} {{ p.year }}</strong></td>
+                        <td>&#8377;{{ p.basic_salary }}</td>
+                        <td class="text-white fw-bold">&#8377;{{ p.net_salary }}</td>
+                        <td>{{ p.present_days|floatformat:"-1" }} / {{ p.working_days }} days</td>
+                        <td>
+                            {% if p.is_paid %}
+                            <span class="badge badge-success">Paid</span>
+                            {% else %}
+                            <span class="badge badge-warning">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'payroll_detail' p.id %}" class="btn btn-sm btn-outline">
+                                <i class="fas fa-file-invoice"></i> View Slip
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center p-5 text-muted">
+                            <i class="fas fa-money-check-alt mb-3" style="font-size: 3rem; display: block;"></i>
+                            No payroll records found yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

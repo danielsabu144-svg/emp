@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}My Assignments - EMS{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+    <div>
+        <h1 class="page-title">My Assignments</h1>
+        <p class="page-subtitle">Manage your tasks and update daily work progress.</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card fade-in">
+            <div class="card-body p-0">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Task Title</th>
+                                <th>Project</th>
+                                <th>Priority</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in tasks %}
+                            <tr class="align-middle">
+                                <td>
+                                    <div class="fw-bold text-dark">{{ task.title }}</div>
+                                    <div class="text-muted small" style="font-weight: 500 !important;">{{task.description|truncatechars:100 }}</div>
+                                </td>
+                                <td>
+                                    <span class="badge"
+                                        style="background: rgba(13, 148, 136, 0.08); color: #0d9488; border: 1px solid rgba(13, 148, 136, 0.2);">{{task.project.name }}</span>
+                                </td>
+                                <td>
+                                    {% if task.priority == 'URGENT' %}
+                                    <span class="badge"
+                                        style="background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2;">Urgent</span>
+                                    {% elif task.priority == 'HIGH' %}
+                                    <span class="badge"
+                                        style="background: #fffbeb; color: #d97706; border: 1px solid #fef3c7;">High</span>
+                                    {% elif task.priority == 'MEDIUM' %}
+                                    <span class="badge"
+                                        style="background: #f0f9ff; color: #0284c7; border: 1px solid #e0f2fe;">Medium</span>
+                                    {% else %}
+                                    <span class="badge"
+                                        style="background: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7;">Low</span>
+                                    {% endif %}
+                                </td>
+                                <td><span class="text-secondary fw-medium">{{ task.due_date|date:"M d, Y" }}</span></td>
+                                <td>
+                                    {% if task.status == 'COMPLETED' %}
+                                    <span class="badge"
+                                        style="background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;">Completed</span>
+                                    {% elif task.status == 'REVIEW' %}
+                                    <span class="badge"
+                                        style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a;">Review</span>
+                                    {% elif task.status == 'IN_PROGRESS' %}
+                                    <span class="badge"
+                                        style="background: #e0f2fe; color: #075985; border: 1px solid #bae6fd;">In
+                                        Progress</span>
+                                    {% else %}
+                                    <span class="badge"
+                                        style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;">To
+                                        Do</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'task_detail' task.id %}" class="btn btn-sm btn-primary">
+                                        Update Progress
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center p-5 text-muted">
+                                    <div class="mb-4">
+                                        <i class="fas fa-check-double text-teal-100"
+                                            style="font-size: 4rem; opacity: 0.3;"></i>
+                                    </div>
+                                    <h5 class="fw-bold text-dark">All caught up!</h5>
+                                    <p>You have no pending tasks assigned at the moment.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-teal-100 {
+        color: #0d9488;
+    }
+</style>
+{% endblock %}

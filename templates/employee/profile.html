@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - Employee Management System{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+    <h1 class="page-title">My Profile</h1>
+    <p class="page-subtitle">View and manage your personal information.</p>
+</div>
+
+<div class="row mt-4">
+    <div class="col-4">
+        <div class="card text-center fade-in">
+            <div class="card-body">
+                <div
+                    style="width: 150px; height: 150px; margin: 0 auto 1.5rem; border-radius: 50%; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 5px solid var(--dark-border);">
+                    {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="Profile"
+                        style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                    <i class="fas fa-user-tie" style="font-size: 5rem; color: white;"></i>
+                    {% endif %}
+                </div>
+                <h3 style="margin-bottom: 0.5rem;">{{ user.get_full_name }}</h3>
+                <p class="text-muted mb-3">{{ user.profile.get_designation_display }}</p>
+                <div class="badge badge-info mb-4">{{ user.get_role_display }}</div>
+
+                <hr style="border-color: var(--dark-border);">
+
+                <div class="mt-4" style="text-align: left;">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Employee ID:</span>
+                        <span class="fw-bold">{{ user.employee_id }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Department:</span>
+                        <span class="fw-bold">{{ user.profile.get_department_display }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Joined:</span>
+                        <span class="fw-bold">{{ user.date_of_joining|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-8">
+        <div class="card fade-in" style="animation-delay: 0.2s;">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-id-card"></i> Personal Information</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6 mb-4">
+                        <label class="text-muted small d-block mb-1">Full Name</label>
+                        <div class="fw-bold">{{ user.get_full_name }}</div>
+                    </div>
+                    <div class="col-6 mb-4">
+                        <label class="text-muted small d-block mb-1">Email Address</label>
+                        <div class="fw-bold">{{ user.email }}</div>
+                    </div>
+                    <div class="col-6 mb-4">
+                        <label class="text-muted small d-block mb-1">Phone Number</label>
+                        <div class="fw-bold">{{ user.phone|default:"Not provided" }}</div>
+                    </div>
+                    <div class="col-6 mb-4">
+                        <label class="text-muted small d-block mb-1">Date of Birth</label>
+                        <div class="fw-bold">{{ user.date_of_birth|date:"M d, Y"|default:"Not provided" }}</div>
+                    </div>
+                    <div class="col-6 mb-4">
+                        <label class="text-muted small d-block mb-1">Gender</label>
+                        <div class="fw-bold">{{ user.profile.get_gender_display }}</div>
+                    </div>
+                    <div class="col-6 mb-4">
+                        <label class="text-muted small d-block mb-1">Blood Group</label>
+                        <div class="fw-bold">{{ user.profile.blood_group|default:"Not provided" }}</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="text-muted small d-block mb-1">Residential Address</label>
+                        <div class="fw-bold">{{ user.profile.address|default:"Not provided" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4 fade-in" style="animation-delay: 0.3s;">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-phone-alt"></i> Emergency Contact</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <label class="text-muted small d-block mb-1">Contact Name</label>
+                        <div class="fw-bold">{{ user.profile.emergency_contact_name|default:"Not provided" }}</div>
+                    </div>
+                    <div class="col-6">
+                        <label class="text-muted small d-block mb-1">Contact Number</label>
+                        <div class="fw-bold">{{ user.profile.emergency_contact|default:"Not provided" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

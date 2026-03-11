@@ -1,0 +1,354 @@
+{% extends 'base.html' %}
+
+{% block title %}Broadcasting Center - EMS Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --glass-bg: rgba(15, 23, 42, 0.8);
+        --glass-border: rgba(255, 255, 255, 0.05);
+        --broadcast-gradient: linear-gradient(135deg, #0d9488 0%, #1e3a8a 100%);
+    }
+
+    .premium-header {
+        background: linear-gradient(135deg, rgba(13, 148, 136, 0.1) 0%, rgba(30, 58, 138, 0.1) 100%);
+        padding: 2.5rem 2rem;
+        border-radius: 20px;
+        border: 1px solid var(--glass-border);
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .broadcast-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        box-shadow: 0 15px 35px -12px rgba(0, 0, 0, 0.5);
+        transition: all 0.3s ease;
+    }
+
+    .section-icon-wrapper {
+        width: 48px;
+        height: 48px;
+        background: var(--primary-gradient);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+        margin-right: 1rem;
+        box-shadow: 0 8px 16px rgba(13, 148, 136, 0.2);
+    }
+
+    .form-floating-custom {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-floating-custom label {
+        position: absolute;
+        top: -9px;
+        left: 12px;
+        background: #0f172a;
+        padding: 0 8px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: var(--primary-light);
+        text-transform: uppercase;
+        z-index: 10;
+        border-radius: 4px;
+        letter-spacing: 0.5px;
+    }
+
+    .custom-input-wrapper {
+        position: relative;
+    }
+
+    .custom-input-wrapper i {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 1rem;
+    }
+
+    .custom-input-wrapper.textarea i {
+        top: 20px;
+        transform: none;
+    }
+
+    .form-control-premium {
+        padding-left: 3rem !important;
+        background: rgba(2, 6, 23, 0.4) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+        color: white !important;
+        border-radius: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control-premium:focus {
+        background: rgba(2, 6, 23, 0.6) !important;
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 20px rgba(13, 148, 136, 0.15);
+    }
+
+    .recipient-selector {
+        background: rgba(2, 6, 23, 0.3);
+        border: 1.5px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        padding: 1rem;
+    }
+
+    .recipient-selector select {
+        background: transparent !important;
+        border: none !important;
+        color: #94a3b8 !important;
+        width: 100%;
+        outline: none;
+    }
+
+    .recipient-selector select option {
+        background: #1e293b;
+        color: white;
+        padding: 8px;
+        border-radius: 6px;
+        margin-bottom: 2px;
+    }
+
+    .tip-card {
+        background: linear-gradient(135deg, rgba(13, 148, 136, 0.05) 0%, rgba(30, 58, 138, 0.05) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        border-radius: 20px;
+        padding: 1.5rem;
+    }
+
+    .tip-item {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .tip-icon {
+        flex-shrink: 0;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .broadcast-btn {
+        background: var(--primary-gradient);
+        border: none;
+        padding: 1rem 2.5rem;
+        font-weight: 700;
+        border-radius: 14px;
+        font-size: 1.1rem;
+        box-shadow: 0 10px 25px rgba(13, 148, 136, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .broadcast-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(13, 148, 136, 0.4);
+    }
+
+    @keyframes pulse-glow {
+        0% {
+            box-shadow: 0 0 0 0 rgba(13, 148, 136, 0.4);
+        }
+
+        70% {
+            box-shadow: 0 0 0 15px rgba(13, 148, 136, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(13, 148, 136, 0);
+        }
+    }
+
+    .live-indicator {
+        width: 8px;
+        height: 8px;
+        background: #10b981;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+        box-shadow: 0 0 10px #10b981;
+        animation: pulse-glow 2s infinite;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="premium-header fade-in">
+    <div class="row align-items-center">
+        <div class="col-md-9">
+            <h1 class="page-title mb-1">Broadcasting Center</h1>
+            <p class="page-subtitle mb-0">
+                <span class="live-indicator"></span>
+                Dispatch real-time updates and critical notices to the organizational ecosystem.
+            </p>
+        </div>
+        <div class="col-md-3 text-md-end mt-3 mt-md-0">
+            <a href="{% url 'notifications' %}" class="btn btn-outline small px-4 py-2 opacity-75">
+                <i class="fas fa-history me-2"></i> Dispatch Logs
+            </a>
+        </div>
+    </div>
+</div>
+
+<form method="post" id="broadcastForm">
+    {% csrf_token %}
+    <div class="row g-4 mb-5">
+        <!-- Message Creation Panel -->
+        <div class="col-lg-7">
+            <div class="broadcast-card p-4 h-100 fade-in" style="animation-delay: 0.1s;">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="section-icon-wrapper">
+                        <i class="fas fa-envelope-open-text"></i>
+                    </div>
+                    <h3 class="card-title text-primary h5 m-0">Compose Transcript</h3>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="form-floating-custom">
+                            <label>Classification</label>
+                            <div class="custom-input-wrapper">
+                                {{ form.notification_type }}
+                                <i class="fas fa-tag"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating-custom">
+                            <label>Subject Line</label>
+                            <div class="custom-input-wrapper">
+                                {{ form.title }}
+                                <i class="fas fa-heading"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-floating-custom">
+                            <label>Contextual Payload (Message)</label>
+                            <div class="custom-input-wrapper textarea">
+                                {{ form.message }}
+                                <i class="fas fa-align-left"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-4 border-top border-secondary border-opacity-25 d-flex justify-content-end gap-3">
+                    <button type="reset" class="btn btn-link text-muted text-decoration-none small">Wipe Draft</button>
+                    <button type="submit" class="btn broadcast-btn text-white px-5">
+                        <i class="fas fa-wifi me-2"></i> Execute Broadcast
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Targeting & Configuration -->
+        <div class="col-lg-5">
+            <div class="broadcast-card p-4 mb-4 fade-in" style="animation-delay: 0.2s;">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="section-icon-wrapper" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+                        <i class="fas fa-users-viewfinder"></i>
+                    </div>
+                    <h3 class="card-title text-primary h5 m-0">Target Parameters</h3>
+                </div>
+
+                <div class="recipient-selector">
+                    <label class="form-label text-white-50 small mb-3 d-flex justify-content-between">
+                        <span>SELECT RECIPIENTS</span>
+                        <span class="badge bg-primary bg-opacity-10 text-primary" id="selectionCount">Current:
+                            ALL</span>
+                    </label>
+                    {{ form.target_users }}
+                    <div class="alert mt-3 mb-0"
+                        style="background: rgba(255, 255, 255, 0.02); color: rgba(255, 255, 255, 0.6); border: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.75rem;">
+                        <i class="fas fa-keyboard me-2 text-primary"></i>
+                        Hold <strong>Ctrl</strong> to select multiple entities. Leave empty to broadcast to
+                        <strong>ENTIRE ORGANIZATION</strong>.
+                    </div>
+                </div>
+            </div>
+
+            <div class="tip-card fade-in" style="animation-delay: 0.3s;">
+                <h6 class="text-white-50 fw-bold small mb-4 tracking-widest text-uppercase">Broadcast Protocols</h6>
+
+                <div class="tip-item">
+                    <div class="tip-icon text-primary"><i class="fas fa-bullhorn"></i></div>
+                    <div>
+                        <div class="fw-bold text-white small">Global Updates</div>
+                        <p class="text-muted mb-0" style="font-size: 0.8rem;">Use for office-scale announcements like
+                            facility status or major HR policies.</p>
+                    </div>
+                </div>
+
+                <div class="tip-item">
+                    <div class="tip-icon text-success"><i class="fas fa-shield-halved"></i></div>
+                    <div>
+                        <div class="fw-bold text-white small">Secure Channels</div>
+                        <p class="text-muted mb-0" style="font-size: 0.8rem;">Target specific departments for sensitive
+                            circulars or specialized briefings.</p>
+                    </div>
+                </div>
+
+                <div class="tip-item mb-0">
+                    <div class="tip-icon text-warning"><i class="fas fa-bolt-lightning"></i></div>
+                    <div>
+                        <div class="fw-bold text-white small">Instant Dispatch</div>
+                        <p class="text-muted mb-0" style="font-size: 0.8rem;">Recipients receive push updates on their
+                            personal dashboards immediately upon execution.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Apply custom classes to form elements
+        const textInputs = document.querySelectorAll('input[type="text"], select:not([multiple]), textarea');
+        textInputs.forEach(input => {
+            input.classList.add('form-control-premium');
+        });
+
+        const multiSelect = document.querySelector('select[multiple]');
+        if (multiSelect) {
+            multiSelect.classList.add('form-control-premium', 'p-2');
+
+            multiSelect.addEventListener('change', function () {
+                const count = Array.from(this.selectedOptions).length;
+                const badge = document.getElementById('selectionCount');
+                if (count === 0) {
+                    badge.innerText = 'Current: ALL';
+                    badge.className = 'badge bg-primary bg-opacity-10 text-primary';
+                } else {
+                    badge.innerText = `Selected: ${count} Members`;
+                    badge.className = 'badge bg-success bg-opacity-10 text-success';
+                }
+            });
+        }
+
+        // Auto-hide alert messages if they exist in the page
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert-auto-hide');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 5000);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Task Details - EMS{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">Assignment Workspace</h1>
+            <p class="page-subtitle">Collaborate on tasks and submit daily work statuses.</p>
+        </div>
+        {% if user.is_hr %}
+        <a href="{% url 'all_tasks' %}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Back to Task Assignments
+        </a>
+        {% else %}
+        <a href="{% url 'my_tasks' %}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Back to My Tasks
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-8">
+        <!-- Task Info -->
+        <div class="card fade-in">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title text-primary"><i class="fas fa-file-alt me-2"></i>{{ task.title }}</h3>
+                <span class="badge {% if task.status == 'COMPLETED' %}badge-success{% else %}badge-info{% endif %}">
+                    {{ task.get_status_display }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="bg-dark rounded p-3 mb-4 border-left border-primary" style="border-width: 4px !important;">
+                    <h5 class="small text-muted mb-2 text-uppercase">Project Context</h5>
+                    <div class="font-weight-bold">{{ task.project.name }}</div>
+                </div>
+
+                <h5>Description</h5>
+                <p class="text-muted">{{ task.description }}</p>
+
+                <div class="row mt-4 pt-3 border-top border-dark">
+                    <div class="col-4">
+                        <label class="small text-muted">Priority</label>
+                        <div class="font-weight-bold">{{ task.get_priority_display }}</div>
+                    </div>
+                    <div class="col-4">
+                        <label class="small text-muted">Due Date</label>
+                        <div class="font-weight-bold">{{ task.due_date|date:"F d, Y" }}</div>
+                    </div>
+                    <div class="col-4">
+                        <label class="small text-muted">Assigned To</label>
+                        <div class="font-weight-bold">{{ task.assigned_to.get_full_name }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress History -->
+        <div class="card mt-4 fade-in" style="animation-delay: 0.1s;">
+            <div class="card-header">
+                <h3 class="card-title text-secondary"><i class="fas fa-history me-2"></i>Work Log History</h3>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    {% for log in work_logs %}
+                    <div class="timeline-item pb-4 mb-4 border-bottom border-dark">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge badge-outline">{{ log.date|date:"M d, Y" }}</span>
+                            <span class="small font-weight-bold text-success">{{ log.hours_spent }} hours</span>
+                        </div>
+                        <p class="mb-1">{{ log.work_description }}</p>
+                        <div class="small text-muted">Updated Status to: <span class="text-info">
+                                {{ log.get_status_update_display }}</span></div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center p-4 text-muted">
+                        No work updates submitted yet for this task.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Sidebar: Update Form -->
+    <div class="col-4">
+        {% if task.assigned_to == user and task.status != 'COMPLETED' %}
+        <div class="card fade-in sticky-top" style="top: 20px; animation-delay: 0.2s;">
+            <div class="card-header">
+                <h3 class="card-title text-accent"><i class="fas fa-pen-nib me-2"></i>Post Daily Update</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-group mb-3">
+                        <label class="form-label">Time Spent (Hours)</label>
+                        {{ form.hours_spent }}
+                    </div>
+                    <div class="form-group mb-3">
+                        <label class="form-label">Update Status</label>
+                        {{ form.status_update }}
+                    </div>
+                    <div class="form-group mb-4">
+                        <label class="form-label">What did you do?</label>
+                        {{ form.work_description }}
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-paper-plane me-2"></i> Submit Weekly Log
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% elif task.status == 'COMPLETED' %}
+        <div class="card fade-in bg-success-soft text-center p-4">
+            <i class="fas fa-check-circle text-success mb-2" style="font-size: 3rem;"></i>
+            <h4 class="text-success">Task Completed</h4>
+            <p class="small mb-0">This assignment was marked as finished on {{ task.completed_at|date:"M d, Y" }}.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .bg-success-soft {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .badge-outline {
+        border: 1px solid var(--dark-border);
+        background: transparent;
+        color: var(--text-muted);
+    }
+</style>
+{% endblock %}

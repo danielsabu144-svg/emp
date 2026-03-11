@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+
+{% block title %}Employee Intel - EMS Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .premium-header {
+        background: linear-gradient(135deg, rgba(8, 145, 178, 0.1) 0%, rgba(30, 58, 138, 0.1) 100%);
+        padding: 2.5rem 2rem;
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        margin-bottom: 2.5rem;
+    }
+
+    .profile-card {
+        background: rgba(15, 23, 42, 0.9);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 24px;
+        overflow: hidden;
+        position: sticky;
+        top: 2rem;
+    }
+
+    .info-card {
+        background: rgba(30, 41, 59, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        border-radius: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .info-card:hover {
+        background: rgba(30, 41, 59, 0.8);
+        border-color: var(--primary-color);
+        transform: translateY(-5px);
+    }
+
+    .profile-avatar-wrapper {
+        position: relative;
+        width: 140px;
+        height: 140px;
+        margin: 0 auto 2rem;
+    }
+
+    .profile-avatar-wrapper::before {
+        content: '';
+        position: absolute;
+        inset: -10px;
+        border-radius: 50%;
+        background: conic-gradient(from 0deg, var(--primary-color), var(--secondary-light), var(--primary-color));
+        animation: rotate 4s linear infinite;
+        opacity: 0.3;
+    }
+
+    @keyframes rotate {
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .profile-avatar {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 4px solid var(--dark-bg);
+        position: relative;
+        z-index: 1;
+        object-fit: cover;
+        background: var(--primary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-mini-card {
+        padding: 1rem;
+        border-radius: 16px;
+        background: rgba(2, 6, 23, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.02);
+    }
+
+    .attendance-table th {
+        background: rgba(13, 148, 136, 0.05);
+        border: none;
+        color: var(--primary-light);
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        letter-spacing: 1px;
+    }
+
+    .attendance-table td {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+    }
+
+    .badge-premium {
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.75rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="premium-header fade-in">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="page-title">Executive Profile</h1>
+            <p class="page-subtitle">Strategic overview and operational metrics for {{ employee.get_full_name }}.</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <div class="d-flex justify-content-md-end gap-3">
+                <a href="{% url 'edit_employee' employee.id %}" class="btn btn-primary rounded-4">
+                    <i class="fas fa-user-edit me-2"></i> Refine Profile
+                </a>
+                {% if can_delete_employee %}
+                <form method="post" action="{% url 'delete_employee' employee.id %}" class="d-inline-block"
+                    onsubmit="return confirm('Delete this employee profile? This will remove the employee account and related records.');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger rounded-4">
+                        <i class="fas fa-trash me-2"></i> Delete Profile
+                    </button>
+                </form>
+                {% endif %}
+                <a href="{% url 'employee_list' %}"
+                    class="btn btn-outline-secondary rounded-4 border-0 bg-white bg-opacity-10 text-white">
+                    <i class="fas fa-chevron-left me-2"></i> Directory
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-2">
+    <!-- Left: Identity Sidebar -->
+    <div class="col-lg-4">
+        <div class="profile-card p-4 text-center fade-in">
+            <div class="profile-avatar-wrapper mt-4">
+                {% if employee.profile_picture %}
+                <img src="{{ employee.profile_picture.url }}" class="profile-avatar">
+                {% else %}
+                <div class="profile-avatar">
+                    <i class="fas fa-user-astronaut fa-4x text-white"></i>
+                </div>
+                {% endif %}
+            </div>
+
+            <h2 class="text-white fw-bold mb-1">{{ employee.get_full_name }}</h2>
+            <p class="text-primary-light fw-medium mb-4">
+                {% if employee.profile %}
+                {{ employee.profile.get_designation_display }}
+                {% else %}
+                {{ employee.get_role_display }}
+                {% endif %}
+            </p>
+
+            {% if employee.is_active %}
+            <span class="badge-premium bg-success bg-opacity-10 text-success border border-success border-opacity-25">
+                <i class="fas fa-circle-check me-2"></i> ACCOUNT ACTIVE
+            </span>
+            {% else %}
+            <span class="badge-premium bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">
+                <i class="fas fa-circle-xmark me-2"></i> ACCOUNT INACTIVE
+            </span>
+            {% endif %}
+
+            <div class="mt-5 text-start">
+                <div class="stat-mini-card mb-3 d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small">Corporate ID</div>
+                        <div class="text-white fw-bold">{{ employee.employee_id|default:"---" }}</div>
+                    </div>
+                    <i class="fas fa-id-badge text-primary opacity-50"></i>
+                </div>
+
+                {% if employee.profile %}
+                <div class="stat-mini-card mb-3 d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small">Functional Unit</div>
+                        <div class="text-white fw-bold">{{ employee.profile.get_department_display }}</div>
+                    </div>
+                    <i class="fas fa-sitemap text-primary opacity-50"></i>
+                </div>
+                <div class="stat-mini-card mb-3 d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small">Economic CTC</div>
+                        <div class="text-success fw-bold fs-5">₹{{ employee.profile.salary }}</div>
+                    </div>
+                    <i class="fas fa-wallet text-success opacity-50"></i>
+                </div>
+                {% else %}
+                <div class="stat-mini-card mb-3 d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small">Access Authorization</div>
+                        <div class="text-white fw-bold">{{ employee.get_role_display }}</div>
+                    </div>
+                    <i class="fas fa-key text-primary opacity-50"></i>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Operational Intelligence -->
+    <div class="col-lg-8">
+        <div class="info-card p-4 mb-4 fade-in" style="animation-delay: 0.1s;">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <h3 class="text-white h4 m-0"><i class="fas fa-chart-line text-primary me-2"></i> Attendance
+                    Intelligence</h3>
+                <span class="text-muted small">Current Fiscal Month</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table attendance-table text-white">
+                    <thead>
+                        <tr>
+                            <th>Calendar Date</th>
+                            <th>Entry Payload</th>
+                            <th>Exit Payload</th>
+                            <th>Engagement</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in month_attendance %}
+                        <tr>
+                            <td>{{ record.date|date:"F d, Y" }}</td>
+                            <td><span class="text-primary-light fw-bold">{{ record.check_in|time:"h:i A" }}</span>
+                            </td>
+                            <td><span class="text-muted">{{ record.check_out|time:"h:i A"|default:"Active Session"
+                                    }}</span></td>
+                            <td>
+                                {% if record.final_status == 'PRESENT' %}
+                                <span class="text-success fw-bold"><i class="fas fa-circle fs-xs me-1"></i>
+                                    OPTIMAL</span>
+                                {% elif record.final_status == 'LATE' %}
+                                <span class="text-warning fw-bold"><i class="fas fa-clock fs-xs me-1"></i>
+                                    DEFERRED</span>
+                                {% elif record.final_status == 'EARLY_LEAVE' %}
+                                <span class="text-danger fw-bold"><i class="fas fa-arrow-right-from-bracket fs-xs me-1"></i>
+                                    EARLY LEAVE</span>
+                                {% elif record.final_status == 'LATE_EARLY_LEAVE' %}
+                                <span class="text-warning fw-bold"><i class="fas fa-triangle-exclamation fs-xs me-1"></i>
+                                    LATE + EARLY LEAVE</span>
+                                {% elif record.final_status == 'HALF_DAY' %}
+                                <span class="text-info fw-bold"><i class="fas fa-adjust fs-xs me-1"></i>
+                                    PARTIAL</span>
+                                {% else %}
+                                <span class="text-danger fw-bold"><i class="fas fa-circle-xmark fs-xs me-1"></i>
+                                    ABSENT</span>
+                                {% endif %}
+                                {% if record.detection_labels %}
+                                <div class="small text-muted mt-1">{{ record.detection_labels|join:", " }}</div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-muted fst-italic">
+                                No operational logs detected for this cycle.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Contact & Digital Presence -->
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="info-card p-4 h-100 fade-in" style="animation-delay: 0.2s;">
+                    <h4 class="text-white h5 mb-4"><i class="fas fa-fingerprint text-primary me-2"></i> Digital Identity
+                    </h4>
+                    <div class="mb-3">
+                        <label class="text-muted small d-block">Digital Mail</label>
+                        <div class="text-white fw-medium">{{ employee.email }}</div>
+                    </div>
+                    <div class="mb-0">
+                        <label class="text-muted small d-block">Communication Line</label>
+                        <div class="text-white fw-medium">{{ employee.phone|default:"Unassigned" }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="info-card p-4 h-100 fade-in" style="animation-delay: 0.3s;">
+                    <h4 class="text-white h5 mb-4"><i class="fas fa-map-location-dot text-primary me-2"></i> Physical
+                        Logistics</h4>
+                    {% if employee.profile %}
+                    <div class="mb-0">
+                        <label class="text-muted small d-block">Registered Residency</label>
+                        <div class="text-white fw-medium">{{ employee.profile.address|default:"Not Logged" }}</div>
+                    </div>
+                    {% else %}
+                    <div class="text-muted italic small">Data restricted to personnel with active profiles.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

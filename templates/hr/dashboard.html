@@ -1,0 +1,428 @@
+{% extends 'base.html' %}
+
+{% block title %}System Administration - EMS{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">
+                {% if user.is_superuser %}System Administration Portal{% else %}Admin Control Center{% endif %}
+            </h1>
+            <p class="page-subtitle">Welcome, {{ user.get_full_name }}. Overview of organization operations.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <span class="badge badge-info p-2 px-3">System Status: Online</span>
+            {% if user.is_superuser %}
+            <span class="badge badge-success p-2 px-3">Mode: Superuser</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Main Statistics -->
+<div class="row g-4 stats-row">
+    <div class="col">
+        <div class="stat-card card slide-in-left">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <div class="stat-inner">
+                <div class="stat-value">{{ total_employees }}</div>
+                <div class="stat-label">{% if user.is_superuser %}Total Accounts{% else %}Total Employees{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% if user.is_superuser %}
+    <div class="col">
+        <div class="stat-card card slide-in-left" style="animation-delay: 0.1s;">
+            <div class="stat-icon" style="background: #1e3a8a"><i class="fas fa-user-shield"></i></div>
+            <div class="stat-inner">
+                <div class="stat-value">{{ total_hr }}</div>
+                <div class="stat-label">HR Managers</div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col">
+        <div class="stat-card slide-in-left" style="animation-delay: 0.1s;">
+            <div class="stat-icon" style="background: #0f172a"><i class="fas fa-user-check"></i></div>
+            <div class="stat-inner">
+                <div class="stat-value text-primary">{{ present_today }}</div>
+                <div class="stat-label">Present Today</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <div class="col">
+        <div class="stat-card card slide-in-left" style="animation-delay: 0.2s;">
+            <div class="stat-icon" style="background: #f59e0b"><i class="fas fa-envelope-open-text"></i></div>
+            <div class="stat-inner">
+                <div class="stat-value">{{ pending_leaves }}</div>
+                <div class="stat-label">Pending Leaves</div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="stat-card card slide-in-left" style="animation-delay: 0.3s;">
+            <div class="stat-icon" style="background: #7c3aed"><i class="fas fa-receipt"></i></div>
+            <div class="stat-inner">
+                <div class="stat-value">{{ payroll_generated }}</div>
+                <div class="stat-label">Payroll (June)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Project & Task Overview -->
+<div class="row g-4 stats-row mt-4">
+    <div class="col">
+        <div class="stat-card card fade-in flex-column text-center"
+            style="border-left: 5px solid #0d9488; background: rgba(13, 148, 136, 0.05); animation-delay: 0.4s; padding: 1.5rem !important;">
+            <div class="stat-icon" style="background: #0d9488; margin-bottom: 1rem;"><i
+                    class="fas fa-project-diagram"></i></div>
+            <div class="stat-inner">
+                <div class="stat-value" style="color: #0d9488 !important; font-size: 1.75rem;">{{ active_projects }}
+                </div>
+                <div class="stat-label text-uppercase" style="font-size: 0.75rem;">Ongoing Projects</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="stat-card card fade-in flex-column text-center"
+            style="border-left: 5px solid #f59e0b; background: rgba(245, 158, 11, 0.05); animation-delay: 0.5s; padding: 1.5rem !important;">
+            <div class="stat-icon" style="background: #f59e0b; margin-bottom: 1rem;"><i class="fas fa-tasks"></i></div>
+            <div class="stat-inner">
+                <div class="stat-value" style="color: #f59e0b !important; font-size: 1.75rem;">{{ pending_tasks }}</div>
+                <div class="stat-label text-uppercase" style="font-size: 0.75rem;">Tasks Piling Up</div>
+            </div>
+        </div>
+    </div>
+    <!-- Spacers to keep them on the left like the others if grid has 4 cols -->
+    <div class="col d-none d-xl-block"></div>
+    <div class="col d-none d-xl-block"></div>
+</div>
+
+<!-- Attendance Trends -->
+<div class="row mt-4 g-4">
+    <div class="col-12">
+        <div class="card h-100">
+            <div
+                class="card-header d-flex justify-content-between align-items-center bg-transparent border-bottom border-secondary">
+                <h3 class="card-title">Attendance Trends</h3>
+                <span class="text-muted small fw-medium">Last 6 Months</span>
+            </div>
+            <div class="card-body p-4">
+                <div class="chart-container chart-lg">
+                    <canvas id="attendanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4 g-4">
+    <div class="col-12">
+        <div class="card quick-actions-card">
+            <div class="card-header bg-transparent border-bottom border-secondary">
+                <h3 class="card-title">Quick Actions</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2 quick-actions-list">
+                    <a href="{% url 'add_employee' %}" class="btn btn-primary quick-action-btn">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Add New User</span>
+                    </a>
+                    <a href="{% url 'employee_list' %}" class="btn btn-outline quick-action-btn">
+                        <i class="fas fa-users-cog"></i>
+                        <span>User Registry</span>
+                    </a>
+                    <a href="{% url 'payroll_list' %}" class="btn btn-outline quick-action-btn">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        <span>Process Payroll</span>
+                    </a>
+                    <a href="{% url 'project_list' %}" class="btn btn-outline quick-action-btn">
+                        <i class="fas fa-folder-open"></i>
+                        <span>Project Registry</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Staffing Overview -->
+<div class="row mt-4 g-4">
+    <div class="col-12">
+        <div class="card staffing-card">
+            <div class="card-header bg-transparent border-bottom border-secondary">
+                <h3 class="card-title">Staffing Overview</h3>
+            </div>
+            <div class="card-body">
+                <div class="chart-container chart-sm">
+                    <canvas id="departmentChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Section: Recent Activity -->
+<div class="row mt-4 g-4">
+    <div class="col-12">
+        <div class="card">
+            <div
+                class="card-header bg-transparent border-bottom border-secondary d-flex justify-content-between align-items-center">
+                <h3 class="card-title">Recent Joiners</h3>
+                <a href="{% url 'employee_list' %}" class="btn btn-sm btn-outline">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Role</th>
+                                <th>Joined</th>
+                                <th>Status</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for emp in recent_employees %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div
+                                            style="width: 36px; height: 36px; border-radius: 10px; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: bold; color: white;">
+                                            {{ emp.first_name.0 }}{{ emp.last_name.0 }}
+                                        </div>
+                                        <div class="fw-bold">{{ emp.get_full_name }}</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge"
+                                        style="background: rgba(148, 163, 184, 0.1); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.2);">
+                                        {{ emp.get_role_display }}
+                                    </span>
+                                </td>
+                                <td>{{ emp.date_joined|date:"M d, Y" }}</td>
+                                <td><span class="badge"
+                                        style="background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2);">Active</span>
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'employee_detail' emp.id %}" class="btn btn-sm btn-outline">
+                                        <i class="fas fa-eye me-1"></i> Details
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center p-5 text-muted">No recent joiners.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .stat-card {
+        padding: 1.25rem !important;
+        margin-bottom: 0 !important;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        height: 100%;
+    }
+
+    .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        background: var(--primary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-inner {
+        flex-grow: 1;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 2px;
+        color: white !important;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #64748b;
+    }
+
+    .border-left-primary {
+        border-left: 5px solid var(--primary-color) !important;
+    }
+
+    .border-left-warning {
+        border-left: 5px solid #f59e0b !important;
+    }
+
+    /* Stats row layout - always 4 cards on large screens */
+    .stats-row {
+        width: 100%;
+    }
+
+    @media (min-width: 1200px) {
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 1.75rem;
+        }
+
+        .stats-row>.col {
+            padding: 0;
+            margin: 0;
+        }
+    }
+
+    /* Charts */
+    .chart-container {
+        position: relative;
+        width: 100%;
+        height: 260px;
+    }
+
+    .chart-container.chart-lg {
+        height: 320px;
+    }
+
+    .chart-container.chart-sm {
+        height: 240px;
+    }
+
+    @media (max-width: 768px) {
+        .chart-container.chart-lg {
+            height: 260px;
+        }
+    }
+
+    /* Quick actions styling */
+    .quick-actions-card .card-body {
+        padding: 1.25rem 1.5rem;
+    }
+
+    .quick-actions-list {
+        gap: 0.75rem !important;
+    }
+
+    .quick-action-btn {
+        width: 100%;
+        justify-content: flex-start;
+        padding: 0.65rem 1rem;
+        border-radius: 12px;
+        font-size: 0.9rem;
+    }
+
+    .quick-action-btn i {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(15, 23, 42, 0.8);
+        font-size: 0.95rem;
+    }
+
+    .quick-action-btn span {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+    }
+
+    /* No extra layout helpers needed now; sections are full-width stacked cards */
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
+    new Chart(attendanceCtx, {
+        type: 'line',
+        data: {
+            labels: [{% for data in attendance_trend %}'{{ data.month }}',{% endfor %}],
+        datasets: [{
+            label: 'Attendance Count',
+            data: [{% for data in attendance_trend %}{{ data.count }}, {% endfor %}],
+        borderColor: '#0d9488',
+        tension: 0.4,
+        fill: true,
+        backgroundColor: 'rgba(13, 148, 136, 0.05)',
+        pointBackgroundColor: '#0d9488',
+        pointRadius: 4,
+        pointHoverRadius: 6
+            }]
+        },
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: { color: '#f1f5f9' },
+                ticks: { color: '#64748b', font: { weight: '500' } }
+            },
+            x: {
+                grid: { display: false },
+                ticks: { color: '#64748b', font: { weight: '500' } }
+            }
+        }
+    }
+    });
+
+    const deptCtx = document.getElementById('departmentChart').getContext('2d');
+    new Chart(deptCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [{% for dept in departments %}'{{ dept.department }}',{% endfor %}],
+        datasets: [{
+            data: [{% for dept in departments %}{{ dept.count }}, {% endfor %}],
+        backgroundColor: ['#0d9488', '#0891b2', '#0f172a', '#64748b', '#94a3b8'],
+        hoverOffset: 4
+            }]
+        },
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '70%',
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    color: '#475569',
+                    padding: 20,
+                    font: { size: 12, weight: '600' },
+                    usePointStyle: true
+                }
+            }
+        }
+    }
+    });
+</script>
+{% endblock %}

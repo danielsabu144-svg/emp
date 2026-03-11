@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Executive Task Oversight - EMS{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+    <div>
+        <h1 class="page-title">Executive Task Oversight</h1>
+        <p class="page-subtitle">Master view of all organizational projects and employee output.</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Project Master List -->
+    <div class="col-8">
+        <div class="card fade-in">
+            <div class="card-header border-bottom border-dark">
+                <h3 class="card-title text-primary"><i class="fas fa-project-diagram me-2"></i>Project Portfolio</h3>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Project Name</th>
+                                <th>Assigned Staff</th>
+                                <th>Total Tasks</th>
+                                <th>Status</th>
+                                <th>Completion</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for project in projects %}
+                            <tr>
+                                <td class="font-weight-bold">{{ project.name }}</td>
+                                <td>
+                                    <div class="small">
+                                        {% for task in project.tasks.all|slice:":3" %}
+                                        {{ task.assigned_to.username }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                        {% if project.tasks.count > 3 %}...{% endif %}
+                                    </div>
+                                </td>
+                                <td>{{ project.tasks.count }}</td>
+                                <td>
+                                    <span
+                                        class="badge badge-sm {% if project.status == 'COMPLETED' %}badge-success{% else %}badge-info{% endif %}">
+                                        {{ project.status }}
+                                    </span>
+                                </td>
+                                <td style="width: 150px;">
+                                    {% with total=project.tasks.count %}
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="flex-grow-1"
+                                            style="height: 4px; background: var(--dark-border); border-radius: 4px;">
+                                            <div
+                                                style="width: {{ project.get_progress }}%; height: 100%; background: var(--primary-gradient);">
+                                            </div>
+                                        </div>
+                                        <span class="small text-muted">{{ project.get_progress }}%</span>
+                                    </div>
+                                    {% endwith %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center p-4">No projects registered.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Employee Feed -->
+    <div class="col-4">
+        <div class="card fade-in" style="animation-delay: 0.1s;">
+            <div class="card-header border-bottom border-dark">
+                <h3 class="card-title text-accent"><i class="fas fa-bolt me-2"></i>Live Employee Feed</h3>
+            </div>
+            <div class="card-body">
+                <div class="activity-feed">
+                    {% for log in recent_work %}
+                    <div class="activity-item mb-4 border-left border-primary pl-3 ml-2"
+                        style="border-width: 2px !important;">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <span class="font-weight-bold small">{{ log.employee.get_full_name }}</span>
+                            <span class="text-muted" style="font-size: 0.7rem;">{{ log.date|date:"M d" }}</span>
+                        </div>
+                        <div class="small my-1">{{ log.work_description|truncatechars:60 }}</div>
+                        <div class="small">
+                            <span class="text-secondary">#{{ log.task.project.name }}</span>
+                            <span class="mx-1">•</span>
+                            <span class="text-muted">{{ log.hours_spent }}h</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted p-4">No recent activity detected.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

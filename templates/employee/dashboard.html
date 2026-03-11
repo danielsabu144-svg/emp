@@ -1,0 +1,392 @@
+{% extends 'base.html' %}
+
+{% block title %}My Dashboard - Employee Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        padding: 1.25rem !important;
+        margin-bottom: 0 !important;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        height: 100%;
+    }
+
+    .stat-inner {
+        flex-grow: 1;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 2px;
+        color: white !important;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">My Dashboard</h1>
+            <p class="page-subtitle">Welcome back, {{ user.get_full_name }}! Have a great day at work.</p>
+        </div>
+        <div>
+            <span class="badge badge-success">{{ request.user.get_role_display }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row">
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="stat-card card slide-in-left">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-inner">
+                <div class="stat-value">{{ present_days|floatformat:"-1" }}</div>
+                <div class="stat-label">Attendance Credit</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="stat-card card slide-in-left" style="animation-delay: 0.1s;">
+            <div class="stat-icon" style="background: var(--primary-gradient);">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div class="stat-inner">
+                <div class="stat-value">{{ total_days }}</div>
+                <div class="stat-label">Total Working Days</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="stat-card card slide-in-left" style="animation-delay: 0.2s;">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);">
+                <i class="fas fa-umbrella-beach"></i>
+            </div>
+            <div class="stat-inner">
+                <div class="stat-value">
+                    {% if leave_balances %}
+                    {{ total_remaining_leaves|floatformat:0 }} {% else %}
+                    0
+                    {% endif %}
+                </div>
+                <div class="stat-label">Leave Balance</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="stat-card card slide-in-left" style="animation-delay: 0.3s;">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #0D9488 0%, #1E3A8A 100%);">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <div class="stat-inner">
+                <div class="stat-value">
+                    {% if latest_payroll %}
+                    ₹{{ latest_payroll.net_salary|floatformat:0 }} {% else %}
+                    N/A
+                    {% endif %}
+                </div>
+                <div class="stat-label">Last Salary</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Task Overview Bar -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card p-3 fade-in" style="background: var(--dark-bg); border: 1px dashed var(--secondary-color);">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <div
+                        style="width: 50px; height: 50px; background: var(--secondary-dark); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--secondary-color); font-size: 1.5rem;">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0">Pending Assignments</h4>
+                        <p class="text-muted small mb-0">You have <strong>{{ pending_tasks }}</strong> tasks waiting for
+                            your attention.</p>
+                    </div>
+                </div>
+                <a href="{% url 'my_tasks' %}" class="btn btn-primary">
+                    <i class="fas fa-external-link-alt me-2"></i> Open Task Workspace
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Today's Attendance & Quick Actions -->
+<div class="row mt-4">
+    <div class="col-6">
+        <div class="card fade-in">
+            <div class="card-header bg-transparent border-bottom border-secondary">
+                <h3 class="card-title"><i class="fas fa-clock"></i> Today's Attendance</h3>
+            </div>
+            <div class="card-body">
+                {% if today_attendance %}
+                <div style="text-align: center; padding: 2rem;">
+                    <div
+                        style="width: 100px; height: 100px; margin: 0 auto 1.5rem; border-radius: 50%; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-glow);">
+                        <i class="fas fa-check" style="font-size: 3rem; color: white;"></i>
+                    </div>
+                    <h3 style="margin-bottom: 0.5rem;">Attendance Marked</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                        Check In Time: <strong>{{ today_attendance.check_in|time:"h:i A" }}</strong>
+                    </p>
+                    <div class="mb-3">
+                        {% if today_attendance.final_status == 'PRESENT' %}
+                        <span class="badge badge-success">Present</span>
+                        {% elif today_attendance.final_status == 'LATE' %}
+                        <span class="badge badge-warning">Late</span>
+                        {% elif today_attendance.final_status == 'EARLY_LEAVE' %}
+                        <span class="badge badge-danger">Early Leave</span>
+                        {% elif today_attendance.final_status == 'LATE_EARLY_LEAVE' %}
+                        <span class="badge badge-warning">Late + Early Leave</span>
+                        {% elif today_attendance.final_status == 'HALF_DAY' %}
+                        <span class="badge badge-info">Half Day</span>
+                        {% else %}
+                        <span class="badge badge-danger">Absent</span>
+                        {% endif %}
+                    </div>
+                    {% if today_attendance.detection_labels %}
+                    <div class="mb-3 d-flex justify-content-center flex-wrap gap-2">
+                        {% for label in today_attendance.detection_labels %}
+                            {% if label == 'Late' %}
+                            <span class="badge badge-warning">{{ label }}</span>
+                            {% elif label == 'Early Leave' %}
+                            <span class="badge badge-danger">{{ label }}</span>
+                            {% else %}
+                            <span class="badge badge-info">{{ label }}</span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% if today_attendance.check_out %}
+                    <p style="color: var(--text-secondary);">
+                        Check Out Time: <strong>{{ today_attendance.check_out|time:"h:i A" }}</strong>
+                    </p>
+                    <p style="color: var(--secondary-color); font-weight: 600;">
+                        Worked Hours: {{ today_attendance.get_work_hours.formatted }}
+                    </p>
+                    {% else %}
+                    <div class="mt-4">
+                        <span class="badge badge-success mb-3">Currently Working</span>
+                        <div class="d-grid">
+                            <form method="post" action="{% url 'mark_attendance_logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Check Out Now
+                                </button>
+                            </form>
+                            <p class="text-muted small mt-2">End your work session and record logout time.</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div style="text-align: center; padding: 2rem;">
+                    <div
+                        style="width: 100px; height: 100px; margin: 0 auto 1.5rem; border-radius: 50%; background: rgba(239, 68, 68, 0.2); display: flex; align-items: center; justify-content: center; border: 3px solid var(--accent-red);">
+                        <i class="fas fa-times" style="font-size: 3rem; color: var(--accent-red);"></i>
+                    </div>
+                    <h3 style="margin-bottom: 0.5rem;">No Attendance Today</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                        Use the button below to start your workday attendance.
+                    </p>
+                    <div class="d-grid">
+                        <form method="post" action="{% url 'mark_attendance_checkin' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-sign-in-alt me-2"></i> Check In Now
+                            </button>
+                        </form>
+                        <p class="text-muted small mt-2">Your login time will be recorded as soon as you check in.</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6">
+        <div class="card fade-in" style="animation-delay: 0.2s;">
+            <div class="card-header bg-transparent border-bottom border-secondary">
+                <h3 class="card-title"><i class="fas fa-bolt"></i> Quick Actions</h3>
+            </div>
+            <div class="card-body">
+                <div style="display: grid; gap: 1rem;">
+                    <a href="{% url 'apply_leave' %}" class="btn btn-primary" style="justify-content: flex-start;">
+                        <i class="fas fa-calendar-plus"></i>
+                        Apply for Leave
+                    </a>
+                    <a href="{% url 'my_attendance' %}" class="btn btn-outline" style="justify-content: flex-start;">
+                        <i class="fas fa-calendar-check"></i>
+                        View Attendance History
+                    </a>
+                    <a href="{% url 'my_payroll' %}" class="btn btn-outline" style="justify-content: flex-start;">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        View Salary Slips
+                    </a>
+                    <a href="{% url 'chatbot' %}" class="btn btn-outline" style="justify-content: flex-start;">
+                        <i class="fas fa-robot"></i>
+                        Ask HR Chatbot
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leave Balance & Recent Leaves -->
+<div class="row mt-4">
+    <div class="col-6">
+        <div class="card fade-in">
+            <div
+                class="card-header bg-transparent border-bottom border-secondary d-flex justify-content-between align-items-center">
+                <h3 class="card-title"><i class="fas fa-chart-pie"></i> Leave Balance</h3>
+                <a href="{% url 'my_leaves' %}" class="btn btn-sm btn-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if leave_balances %}
+                <div style="display: grid; gap: 1rem;">
+                    {% for balance in leave_balances %}
+                    <div
+                        style="padding: 1rem; background: rgba(13, 148, 136, 0.05); border-radius: var(--radius-md); border-left: 3px solid var(--primary-color);">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h4 style="margin: 0; font-size: 1rem;">{{ balance.leave_type|default:"Unknown" }}</h4>
+                            <span class="badge badge-info">{{ balance.year }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between"
+                            style="font-size: 0.875rem; color: var(--text-secondary);">
+                            <span>Total: {{ balance.total_leaves }} days</span>
+                            <span>Used: {{ balance.used_leaves }} days</span>
+                            <span style="color: var(--secondary-color); font-weight: 600;">Remaining: {{ balance.remaining_leaves|floatformat:"-1" }} days</span>
+                        </div>
+                        <div
+                            style="margin-top: 0.75rem; height: 8px; background: var(--dark-border); border-radius: var(--radius-full); overflow: hidden;">
+                            <div
+                                style="height: 100%; width: {{ balance.usage_percentage|floatformat:0 }}%; background: var(--primary-gradient);">
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                    <i class="fas fa-info-circle" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                    No leave balance information available
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6">
+        <div class="card fade-in" style="animation-delay: 0.2s;">
+            <div
+                class="card-header bg-transparent border-bottom border-secondary d-flex justify-content-between align-items-center">
+                <h3 class="card-title"><i class="fas fa-history"></i> Recent Leave Requests</h3>
+                <a href="{% url 'my_leaves' %}" class="btn btn-sm btn-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_leaves %}
+                <div style="max-height: 300px; overflow-y: auto;">
+                    {% for leave in recent_leaves %}
+                    <div class="d-flex justify-content-between align-items-center mb-3"
+                        style="padding: 1rem; background: rgba(13, 148, 136, 0.05); border-radius: var(--radius-md);">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">{{ leave.leave_type|default:"Unknown" }}</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                                {{ leave.from_date|date:"M d" }} - {{ leave.to_date|date:"M d, Y" }} </div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+                                Applied: {{ leave.applied_on|date:"M d, Y" }} </div>
+                        </div>
+                        <div>
+                            {% if leave.status == 'PENDING' %}
+                            <span class="badge badge-warning">Pending</span>
+                            {% elif leave.status == 'APPROVED' %}
+                            <span class="badge badge-success">Approved</span>
+                            {% else %}
+                            <span class="badge badge-danger">Rejected</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                    <i class="fas fa-calendar-times" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                    No leave requests yet
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notifications -->
+{% if notifications %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card fade-in">
+            <div
+                class="card-header bg-transparent border-bottom border-secondary d-flex justify-content-between align-items-center">
+                <h3 class="card-title"><i class="fas fa-bell"></i> Recent Notifications</h3>
+                <a href="{% url 'notifications' %}" class="btn btn-sm btn-primary">View All</a>
+            </div>
+            <div class="card-body">
+                <div style="display: grid; gap: 1rem;">
+                    {% for notification in notifications %}
+                    <div class="d-flex align-items-start gap-2"
+                        style="padding: 1rem; background: rgba(13, 148, 136, 0.05); border-radius: var(--radius-md); border-left: 3px solid var(--primary-color);">
+                        <div
+                            style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0;">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">{{ notification.title }}</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">{{ notification.message }}
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
+                                {{ notification.created_at|timesince }} ago
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

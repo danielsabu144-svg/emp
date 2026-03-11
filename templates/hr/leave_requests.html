@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Leave Management - EMS Admin{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in d-flex justify-content-between align-items-end">
+    <div>
+        <h1 class="page-title">Leave Approvals</h1>
+        <p class="page-subtitle">Review and manage employee leave applications.</p>
+    </div>
+    <div class="d-flex gap-2 mb-2">
+        <a href="?status=PENDING"
+            class="btn {% if status_filter == 'PENDING' %}btn-primary{% else %}btn-outline{% endif %} btn-sm px-4">Pending</a>
+        <a href="?status=APPROVED"
+            class="btn {% if status_filter == 'APPROVED' %}btn-primary{% else %}btn-outline{% endif %} btn-sm px-4">Approved</a>
+        <a href="?status=REJECTED"
+            class="btn {% if status_filter == 'REJECTED' %}btn-primary{% else %}btn-outline{% endif %} btn-sm px-4">Rejected</a>
+    </div>
+</div>
+
+<div class="card mt-4 fade-in">
+    <div class="card-body p-0">
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Type</th>
+                        <th>Duration</th>
+                        <th>Days</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for leave in leaves %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold">{{ leave.employee.get_full_name }}</div>
+                            <div class="text-muted small">Applied: {{ leave.applied_on|date:"M d" }}</div>
+                        </td>
+                        <td><span class="badge badge-info">{{ leave.leave_type|default:"Unknown" }}</span></td>
+                        <td>{{ leave.from_date|date:"M d" }} to {{ leave.to_date|date:"M d, Y" }}</td>
+                        <td>{{ leave.total_days }}</td>
+                        <td>
+                            {% if leave.status == 'PENDING' %}
+                            <span class="badge badge-warning">Pending</span>
+                            {% elif leave.status == 'APPROVED' %}
+                            <span class="badge badge-success">Approved</span>
+                            {% else %}
+                            <span class="badge badge-danger">Rejected</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if leave.status == 'PENDING' %}
+                            <div class="d-flex gap-1">
+                                <a href="{% url 'approve_leave' leave.id %}" class="btn btn-sm btn-secondary"
+                                    onclick="return confirm('Approve this leave?')">
+                                    <i class="fas fa-check"></i>
+                                </a>
+                                <a href="{% url 'reject_leave' leave.id %}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                            </div>
+                            {% else %}
+                            <span class="text-muted small">Processed by {{ leave.approved_by.get_full_name|default:"HR" }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center p-5 text-muted">No leave requests found for this status.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Payroll Management - EMS Admin{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in d-flex justify-content-between align-items-end">
+    <div>
+        <h1 class="page-title">Payroll Management</h1>
+        <p class="page-subtitle">Process salaries and manage payment distributions.</p>
+    </div>
+    <div class="mb-2">
+        <a href="{% url 'generate_payroll' %}" class="btn btn-primary">
+            <i class="fas fa-sync-alt me-2"></i> Generate New Payroll
+        </a>
+    </div>
+</div>
+
+<div class="card mt-4 fade-in">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title">Salary Records for {{ month_name }} {{ year }}</h3>
+        <form method="get" class="d-flex gap-2">
+            <select name="month" class="form-control form-control-sm">
+                {% for month_number, month_label in months %}
+                <option value="{{ month_number }}" {% if month == month_number %}selected{% endif %}>{{ month_label }}</option>
+                {% endfor %}
+            </select>
+            <select name="year" class="form-control form-control-sm">
+                {% for year_option in years %}
+                <option value="{{ year_option }}" {% if year == year_option %}selected{% endif %}>{{ year_option }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-sm btn-secondary">Switch</button>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Basic Salary</th>
+                        <th>Attendance</th>
+                        <th>Net Salary</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in payrolls %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold">{{ p.employee.get_full_name }}</div>
+                            <div class="text-muted small">ID: {{ p.employee.employee_id }}</div>
+                        </td>
+                        <td>&#8377;{{ p.basic_salary }}</td>
+                        <td>{{ p.present_days|floatformat:"-1" }} / {{ p.working_days }} days</td>
+                        <td class="text-white fw-bold">&#8377;{{ p.net_salary }}</td>
+                        <td>
+                            {% if p.is_paid %}
+                            <span class="badge badge-success">Paid</span>
+                            {% else %}
+                            <span class="badge badge-warning">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'payroll_detail' p.id %}" class="btn btn-sm btn-outline">
+                                <i class="fas fa-file-invoice"></i> Slip
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center p-5 text-muted">No payroll records found for this month.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

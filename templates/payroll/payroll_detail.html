@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block title %}Payroll Detail - Employee Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .payslip-card {
+        max-width: 900px;
+        margin: 0 auto;
+        border: 2px solid var(--dark-border);
+        box-shadow: none;
+    }
+
+    .payslip-header {
+        border-bottom: 2px solid var(--dark-border);
+        padding-bottom: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .payslip-footer {
+        border-top: 2px solid var(--dark-border);
+        padding-top: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .salary-table th {
+        background: transparent !important;
+        border-bottom: 2px solid var(--dark-border);
+    }
+
+    @media print {
+        .sidebar,
+        .btn,
+        .page-header {
+            display: none !important;
+        }
+
+        .main-content {
+            margin-left: 0 !important;
+            padding: 0 !important;
+        }
+
+        .payslip-card {
+            border: none !important;
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center fade-in">
+    <div>
+        <h1 class="page-title">Salary Slip</h1>
+        <p class="page-subtitle">Official payroll record for {{ payroll.month_name }} {{ payroll.year }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if user.is_hr %}
+        {% if not payroll.is_paid %}
+        <form method="post" action="{% url 'mark_as_paid' payroll.id %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-check-double"></i> Mark as Paid
+            </button>
+        </form>
+        {% endif %}
+        <a href="{% url 'update_payroll' payroll.id %}" class="btn btn-warning">
+            <i class="fas fa-edit"></i> Set Adjustments
+        </a>
+        {% endif %}
+        <button onclick="window.print()" class="btn btn-outline">
+            <i class="fas fa-print"></i> Print Payslip
+        </button>
+        {% if user.is_hr %}
+        <a href="{% url 'payroll_list' %}" class="btn btn-primary">Back to Registry</a>
+        {% else %}
+        <a href="{% url 'my_payroll' %}" class="btn btn-primary">Back to History</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card payslip-card mt-4 fade-in">
+    <div class="card-body">
+        <div class="payslip-header d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-1">CLOUD HRM</h2>
+                <p class="text-muted small mb-0">Employee Management System</p>
+            </div>
+            <div class="text-end">
+                <h3 class="mb-0">Payroll Record</h3>
+                <p class="text-secondary small">{{ payroll.month_name }} {{ payroll.year }}</p>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-6">
+                <div class="mb-2"><span class="text-muted small">Employee Name:</span> <span class="fw-bold">{{ payroll.employee.get_full_name }}</span></div>
+                <div class="mb-2"><span class="text-muted small">Employee ID:</span> <span class="fw-bold">{{ payroll.employee.employee_id }}</span></div>
+                <div class="mb-2"><span class="text-muted small">Department:</span> <span
+                        class="fw-bold text-uppercase">{{ payroll.employee.profile.get_department_display }}</span>
+                </div>
+            </div>
+            <div class="col-6 text-end">
+                <div class="mb-2"><span class="text-muted small">Designation:</span> <span class="fw-bold">
+                        {{ payroll.employee.profile.get_designation_display }}</span></div>
+                <div class="mb-2"><span class="text-muted small">Payment Date:</span> <span class="fw-bold">
+                        {{ payroll.payment_date|date:"M d, Y"|default:"Pending" }}</span></div>
+                <div class="mb-2"><span class="text-muted small">Payment Status:</span>
+                    <span class="badge {% if payroll.is_paid %}badge-success{% else %}badge-warning{% endif %}">
+                        {% if payroll.is_paid %}PAID{% else %}PENDING{% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container mb-4">
+            <table class="table salary-table">
+                <thead>
+                    <tr>
+                        <th>Earnings Description</th>
+                        <th class="text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Contract Basic Salary</td>
+                        <td class="text-end">&#8377;{{ payroll.basic_salary }}</td>
+                    </tr>
+                    <tr>
+                        <td>Payable Basic after Attendance</td>
+                        <td class="text-end">&#8377;{{ payroll.earned_basic_salary }}</td>
+                    </tr>
+                    <tr>
+                        <td>Allowances (HRA, TA, DA)</td>
+                        <td class="text-end">&#8377;{{ payroll.allowances }}</td>
+                    </tr>
+                    <tr class="fw-bold" style="background: rgba(16, 185, 129, 0.05);">
+                        <td>Gross Earnings</td>
+                        <td class="text-end text-success">&#8377;{{ payroll.gross_salary|stringformat:".2f" }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-container mb-4">
+            <table class="table salary-table">
+                <thead>
+                    <tr>
+                        <th>Deductions Description</th>
+                        <th class="text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Tax Deducted at Source (TDS)</td>
+                        <td class="text-end">&#8377;{{ payroll.tds|stringformat:".2f" }}</td>
+                    </tr>
+                    <tr>
+                        <td>Professional Tax</td>
+                        <td class="text-end">&#8377;{{ payroll.professional_tax|stringformat:".2f" }}</td>
+                    </tr>
+                    {% if payroll.deductions > 0 %}
+                    <tr>
+                        <td>Other Deductions / Adjustments</td>
+                        <td class="text-end">&#8377;{{ payroll.deductions }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td>Attendance Reduction ({{ payroll.unpaid_days|floatformat:"-1" }} unpaid days)</td>
+                        <td class="text-end text-warning">&#8377;{{ payroll.attendance_deduction }}</td>
+                    </tr>
+                    <tr class="fw-bold" style="background: rgba(239, 68, 68, 0.05);">
+                        <td>Total Deductions</td>
+                        <td class="text-end text-danger">&#8377;{{ payroll.total_deductions|stringformat:".2f" }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="rounded p-4 d-flex justify-content-between align-items-center"
+            style="background: var(--primary-gradient); color: white;">
+            <div>
+                <h4 class="mb-0">Net Salary Payable</h4>
+                <p class="mb-0 small opacity-75">Take home amount after all deductions</p>
+            </div>
+            <div class="text-end">
+                <h2 class="mb-0">&#8377; {{ payroll.net_salary }}</h2>
+            </div>
+        </div>
+
+        <div class="payslip-footer row mt-5">
+            <div class="col-6">
+                <p class="small text-muted mb-4">Employee Signature</p>
+                <div style="border-bottom: 1px solid var(--dark-border); width: 200px;"></div>
+            </div>
+            <div class="col-6 text-end">
+                <p class="small text-muted mb-4">Authorized HR Signatory</p>
+                <div style="border-bottom: 1px solid var(--dark-border); width: 200px; margin-left: auto;"></div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <p class="text-muted small">This is a system generated salary slip and does not require a physical stamp
+                unless requested.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

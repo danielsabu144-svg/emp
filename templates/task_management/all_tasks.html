@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% load task_filters %}
+
+{% block title %}All Tasks - EMS{% endblock %}
+
+{% block content %}
+<!-- <div class="page-header fade-in"> -->
+<div class="page-header fade-in d-flex justify-content-between align-items-end">
+        <div>
+            <h1 class="page-title">Task Management Center</h1>
+            <p class="page-subtitle">Monitor all assigned tasks and employee workload.</p>
+        </div>
+        <div class="d-flex gap-2 mb-2">
+            <a href="{% url 'project_create' %}" class="btn btn-outline">
+                <i class="fas fa-folder-plus"></i> New Project
+            </a>
+            <a href="{% url 'task_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Assign Task
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card fade-in">
+            <div class="card-header border-bottom border-dark">
+                <h3 class="card-title text-primary"><i class="fas fa-clipboard-list me-2"></i>All Tasks Overview</h3>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Task Title</th>
+                                <th>Project</th>
+                                <th>Assigned To</th>
+                                <th>Priority</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                                <th>Progress</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in tasks %}
+                            <tr class="align-middle">
+                                <td>
+                                    <div class="font-weight-bold">{{ task.title }}</div>
+                                    <small class="text-muted">{{ task.description|truncatechars:50 }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge badge-outline-primary">{{ task.project.name }}</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div
+                                            style="width: 32px; height: 32px; background: var(--secondary-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--secondary-color); font-weight: bold; font-size: 0.8rem;">
+                                            {{ task.assigned_to.first_name|slice:":1" }}{{ task.assigned_to.last_name|slice:":1" }}
+                                        </div>
+                                        <div>
+                                            <div class="font-weight-bold small">{{ task.assigned_to.get_full_name }}
+                                            </div>
+                                            <div class="text-muted" style="font-size: 0.7rem;">@{{ task.assigned_to.username }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if task.priority == 'URGENT' %}
+                                    <span class="badge badge-danger"><i class="fas fa-exclamation-circle me-1"></i>
+                                        Urgent</span>
+                                    {% elif task.priority == 'HIGH' %}
+                                    <span class="badge badge-warning"><i class="fas fa-arrow-up me-1"></i> High</span>
+                                    {% elif task.priority == 'MEDIUM' %}
+                                    <span class="badge badge-info"><i class="fas fa-minus me-1"></i> Medium</span>
+                                    {% else %}
+                                    <span class="badge badge-success"><i class="fas fa-arrow-down me-1"></i> Low</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="small">{{ task.due_date|date:"M d, Y" }}</div>
+                                    {% if task.due_date < today and task.status != 'COMPLETED' %} <span
+                                        class="badge badge-sm badge-danger">Overdue</span>
+                                        {% endif %}
+                                </td>
+                                <td>
+                                    {% if task.status == 'COMPLETED' %}
+                                    <span class="badge badge-success">Completed</span>
+                                    {% elif task.status == 'REVIEW' %}
+                                    <span class="badge badge-warning">Under Review</span>
+                                    {% elif task.status == 'IN_PROGRESS' %}
+                                    <span class="badge badge-info">In Progress</span>
+                                    {% else %}
+                                    <span class="badge badge-outline">To Do</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="small text-muted mb-1">{{ task.work_logs.count }} updates</div>
+                                    {% if task.work_logs.count > 0 %}
+                                    <div class="small text-success">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {% with total_hours=task.work_logs.all|sum_hours %}
+                                        {{ total_hours|floatformat:1 }}h logged
+                                        {% endwith %}
+                                    </div>
+                                    {% else %}
+                                    <div class="small text-muted">No activity</div>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'task_detail' task.id %}" class="btn btn-sm btn-primary px-3">
+                                        <i class="fas fa-eye me-1"></i> View Details
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center p-5 text-muted">
+                                    <i class="fas fa-tasks mb-3" style="font-size: 3rem; display: block;"></i>
+                                    No tasks have been assigned yet. Start by creating a project and assigning tasks to
+                                    your team.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .badge-outline-primary {
+        background: transparent;
+        border: 1px solid var(--secondary-color);
+        color: var(--secondary-color);
+    }
+
+    .badge-outline {
+        background: transparent;
+        border: 1px solid var(--dark-border);
+        color: var(--text-muted);
+    }
+
+    .badge-sm {
+        font-size: 0.7rem;
+        padding: 2px 6px;
+    }
+</style>
+{% endblock %}

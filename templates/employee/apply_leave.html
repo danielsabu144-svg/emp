@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Apply Leave - EMS{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">Apply for Leave</h1>
+            <p class="page-subtitle">Submit a new leave application to HR.</p>
+        </div>
+        <a href="{% url 'my_leaves' %}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Back to History
+        </a>
+    </div>
+</div>
+
+<div class="row mt-4 justify-content-center">
+    <div class="col-8">
+        <form method="post" class="card fade-in">
+            {% csrf_token %}
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Leave Type</label>
+                        <select name="leave_type" class="form-control" required>
+                            <option value="">Select leave type...</option>
+                            {% for lt in leave_types %}
+                            <option value="{{ lt.id }}">{{ lt.name }} (Max: {{ lt.max_days_per_year }} days)</option>
+                            {% endfor %}
+                        </select>
+                        {% if not leave_types %}
+                        <small class="text-warning d-block mt-2">No active leave types are available right now.</small>
+                        {% endif %}
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label">From Date</label>
+                        <input type="date" name="from_date" class="form-control" required id="from_date">
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label">To Date</label>
+                        <input type="date" name="to_date" class="form-control" required id="to_date">
+                    </div>
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Reason for Leave</label>
+                        <textarea name="reason" class="form-control" rows="4" required
+                            placeholder="Describe why you need this leave..."></textarea>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-top border-dark">
+                    <button type="submit" class="btn btn-primary w-100 btn-lg">
+                        Submit Leave Application
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Simple validation to prevent past dates
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('from_date').setAttribute('min', today);
+    document.getElementById('to_date').setAttribute('min', today);
+</script>
+{% endblock %}

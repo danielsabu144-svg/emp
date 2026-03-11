@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Generate Payroll - EMS Admin{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">Generate Payroll</h1>
+            <p class="page-subtitle">Batch process monthly salaries for all employees based on attendance.</p>
+        </div>
+        <a href="{% url 'payroll_list' %}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Back to Payroll List
+        </a>
+    </div>
+</div>
+
+<div class="row mt-4 justify-content-center">
+    <div class="col-6">
+        <form method="post" class="card fade-in">
+            {% csrf_token %}
+            <div class="card-body">
+                <div class="alert alert-info"
+                    style="background: rgba(79, 70, 229, 0.1); border-left: 4px solid var(--primary-color); color: white;">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Payroll generation will calculate salaries based on the attendance records of the selected month.
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Select Month</label>
+                        <select name="month" class="form-control" required>
+                            {% for month_number, month_label in months %}
+                            <option value="{{ month_number }}" {% if month == month_number %}selected{% endif %}>{{ month_label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Select Year</label>
+                        <select name="year" class="form-control" required>
+                            {% for year_option in years %}
+                            <option value="{{ year_option }}" {% if year == year_option %}selected{% endif %}>{{ year_option }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-top border-dark">
+                    <button type="submit" class="btn btn-primary w-100 btn-lg">
+                        <i class="fas fa-calculator me-2"></i> Run Payroll Generation
+                    </button>
+                    <p class="text-muted small text-center mt-3">
+                        Note: If payroll already exists for an employee for the selected period, it will not be
+                        re-generated.
+                    </p>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

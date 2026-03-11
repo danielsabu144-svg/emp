@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}Attendance Monitoring - EMS Admin{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+    <div>
+        <h1 class="page-title">Attendance Monitoring</h1>
+        <p class="page-subtitle">Monitor late arrivals, early leaves, half days, and absences from raw attendance data.</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card fade-in">
+            <div class="stat-icon" style="background: var(--primary-gradient);">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-value">{{ total_records }}</div>
+            <div class="stat-label">Filtered Records</div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card fade-in" style="animation-delay: 0.1s;">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-value">{{ late_entry_count }}</div>
+            <div class="stat-label">Late Entries</div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card fade-in" style="animation-delay: 0.2s;">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #EF4444 0%, #B91C1C 100%);">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <div class="stat-value">{{ early_leave_count }}</div>
+            <div class="stat-label">Early Leaves</div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card fade-in" style="animation-delay: 0.3s;">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #0EA5E9 0%, #1D4ED8 100%);">
+                <i class="fas fa-adjust"></i>
+            </div>
+            <div class="stat-value">{{ half_day_count }}</div>
+            <div class="stat-label">Half Days</div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4 fade-in">
+    <div class="card-header">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Date</label>
+                <input
+                    type="date"
+                    name="date"
+                    class="form-control"
+                    value="{% if date_filter %}{{ date_filter }}{% else %}{{ today|date:'Y-m-d' }}{% endif %}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Employee</label>
+                <select name="employee" class="form-control">
+                    <option value="">All Employees</option>
+                    {% for employee in employees %}
+                    <option value="{{ employee.id }}" {% if employee_filter == employee.id|stringformat:'s' %}selected{% endif %}>
+                        {{ employee.get_full_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-control">
+                    <option value="">All Statuses</option>
+                    <option value="ABSENT" {% if status_filter == 'ABSENT' %}selected{% endif %}>Absent</option>
+                    <option value="HALF_DAY" {% if status_filter == 'HALF_DAY' %}selected{% endif %}>Half Day</option>
+                    <option value="LATE_EARLY_LEAVE" {% if status_filter == 'LATE_EARLY_LEAVE' %}selected{% endif %}>Late + Early Leave</option>
+                    <option value="LATE" {% if status_filter == 'LATE' %}selected{% endif %}>Late</option>
+                    <option value="EARLY_LEAVE" {% if status_filter == 'EARLY_LEAVE' %}selected{% endif %}>Early Leave</option>
+                    <option value="PRESENT" {% if status_filter == 'PRESENT' %}selected{% endif %}>Present</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Detection</label>
+                <select name="detection" class="form-control">
+                    <option value="">All Alerts</option>
+                    <option value="LATE" {% if detection_filter == 'LATE' %}selected{% endif %}>Late</option>
+                    <option value="EARLY_LEAVE" {% if detection_filter == 'EARLY_LEAVE' %}selected{% endif %}>Early Leave</option>
+                    <option value="HALF_DAY" {% if detection_filter == 'HALF_DAY' %}selected{% endif %}>Half Day</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+                <a href="{% url 'attendance_list' %}" class="btn btn-outline w-100">Reset</a>
+            </div>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Date</th>
+                        <th>Check In</th>
+                        <th>Check Out</th>
+                        <th>Final Status</th>
+                        <th>Flags</th>
+                        <th>Worked Hours</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attendance in attendances %}
+                    <tr>
+                        <td><strong>{{ attendance.employee.get_full_name }}</strong></td>
+                        <td>{{ attendance.date|date:"M d, Y" }}</td>
+                        <td><span class="text-success">{{ attendance.check_in|time:"h:i A"|default:"--" }}</span></td>
+                        <td><span class="text-danger">{{ attendance.check_out|time:"h:i A"|default:"--" }}</span></td>
+                        <td>
+                            {% if attendance.final_status == 'PRESENT' %}
+                            <span class="badge badge-success">Present</span>
+                            {% elif attendance.final_status == 'LATE' %}
+                            <span class="badge badge-warning">Late</span>
+                            {% elif attendance.final_status == 'EARLY_LEAVE' %}
+                            <span class="badge badge-danger">Early Leave</span>
+                            {% elif attendance.final_status == 'LATE_EARLY_LEAVE' %}
+                            <span class="badge badge-warning">Late + Early Leave</span>
+                            {% elif attendance.final_status == 'HALF_DAY' %}
+                            <span class="badge badge-info">Half Day</span>
+                            {% else %}
+                            <span class="badge badge-danger">Absent</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if attendance.detection_labels %}
+                                {% for label in attendance.detection_labels %}
+                                    {% if label == 'Late' %}
+                                    <span class="badge badge-warning">{{ label }}</span>
+                                    {% elif label == 'Early Leave' %}
+                                    <span class="badge badge-danger">{{ label }}</span>
+                                    {% else %}
+                                    <span class="badge badge-info">{{ label }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                            <span class="text-muted">--</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ attendance.get_work_hours.formatted }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center p-5 text-muted">No attendance records found for the selected filters.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

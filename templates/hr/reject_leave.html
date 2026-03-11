@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Reject Leave - EMS Admin{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+    <h1 class="page-title">Reject Leave Request</h1>
+</div>
+
+<div class="row mt-4 justify-content-center">
+    <div class="col-6">
+        <form method="post" class="card fade-in">
+            {% csrf_token %}
+            <div class="card-body">
+                <div class="alert alert-info"
+                    style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid var(--accent-red); color: white;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    You are rejecting the leave request from <strong>{{ leave.employee.get_full_name }}</strong>.
+                </div>
+
+                <div class="mb-4 mt-4">
+                    <label class="form-label">Rejection Remarks</label>
+                    <textarea name="remarks" class="form-control" rows="4" required
+                        placeholder="Please provide a reason for rejection..."></textarea>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-danger flex-fill">Confirm Rejection</button>
+                    <a href="{% url 'leave_requests' %}" class="btn btn-outline flex-fill">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

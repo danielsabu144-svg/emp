@@ -1,0 +1,439 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - EMS Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --glass-bg: rgba(15, 23, 42, 0.8);
+        --glass-border: rgba(255, 255, 255, 0.05);
+        --accent-glow: rgba(13, 148, 136, 0.3);
+    }
+
+    .premium-header {
+        background: linear-gradient(135deg, rgba(13, 148, 136, 0.1) 0%, rgba(30, 58, 138, 0.1) 100%);
+        padding: 2.5rem 2rem;
+        border-radius: 20px;
+        border: 1px solid var(--glass-border);
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .form-section-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        box-shadow: 0 15px 35px -12px rgba(0, 0, 0, 0.5);
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-section-card:hover {
+        border-color: var(--primary-color);
+    }
+
+    .section-icon-wrapper {
+        width: 42px;
+        height: 42px;
+        background: var(--primary-gradient);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        margin-right: 0.875rem;
+    }
+
+    .form-floating-custom {
+        position: relative;
+        margin-bottom: 1.25rem;
+    }
+
+    .form-floating-custom label {
+        position: absolute;
+        top: -9px;
+        left: 12px;
+        background: #0f172a;
+        padding: 0 6px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--primary-light);
+        text-transform: uppercase;
+        z-index: 10;
+        border-radius: 4px;
+    }
+
+    .custom-input-wrapper {
+        position: relative;
+    }
+
+    .custom-input-wrapper i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    .form-control-premium {
+        padding-left: 2.75rem !important;
+        background: rgba(2, 6, 23, 0.4) !important;
+        border: 1px solid var(--dark-border) !important;
+        height: 52px;
+        font-size: 0.95rem;
+    }
+
+    .form-control-premium:focus {
+        border-color: var(--primary-color) !important;
+    }
+
+    .role-selector-wrapper {
+        border: 1px solid var(--dark-border);
+        border-radius: 14px;
+        padding: 1.25rem;
+        background: rgba(255, 255, 255, 0.01);
+    }
+
+    .image-upload-zone {
+        border: 1.5px dashed var(--dark-border);
+        border-radius: 14px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.2s ease;
+        background: rgba(255, 255, 255, 0.01);
+        cursor: pointer;
+    }
+
+    .image-upload-zone:hover {
+        border-color: var(--primary-color);
+        background: rgba(13, 148, 136, 0.03);
+    }
+
+    .submit-btn-premium {
+        background: var(--primary-gradient);
+        padding: 0.875rem 2.5rem;
+        font-weight: 700;
+        border-radius: 12px;
+        box-shadow: 0 10px 20px rgba(13, 148, 136, 0.25);
+    }
+
+    @keyframes slideUpFade {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-appear {
+        animation: slideUpFade 0.4s ease-out forwards;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="premium-header animate-appear">
+    <div class="row align-items-center">
+        <div class="col-md-9">
+            <h1 class="page-title mb-1" style="font-size: 1.75rem;">{{ title }}</h1>
+            <p class="page-subtitle mb-0 small text-muted">
+                <i class="fas fa-id-card-clip text-primary me-2"></i> Onboard new personnel and configure their
+                organizational access.
+            </p>
+        </div>
+        <div class="col-md-3 text-md-end mt-3 mt-md-0">
+            <a href="{% url 'employee_list' %}" class="btn back-btn-premium hover-white small py-2 px-3">
+                <i class="fas fa-chevron-left me-2"></i> Directory
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-0">
+    <form method="post" enctype="multipart/form-data" id="employeeForm">
+        {% csrf_token %}
+
+        <!-- Balanced 2-Column Section -->
+        <div class="row g-4 mb-4">
+            <!-- Column 1: Identity & Media -->
+            <div class="col-lg-12">
+                <div class="form-section-card p-4 h-100 animate-appear">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="section-icon-wrapper">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <h3 class="card-title text-primary h5 m-0">Identity & Access</h3>
+                    </div>
+
+                    <div class="role-selector-wrapper mb-4">
+                        <label class="form-label text-muted small mb-2">ACCESS AUTHORIZATION LEVEL</label>
+                        {{ user_form.role }}
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-12" id="employee_id_group">
+                            <div class="form-floating-custom">
+                                <label>Employee ID</label>
+                                <div class="custom-input-wrapper">
+                                    {{ user_form.employee_id }}
+                                    <i class="fas fa-hashtag"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating-custom">
+                                <label>Username</label>
+                                <div class="custom-input-wrapper">
+                                    {{ user_form.username }}
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating-custom">
+                                <label>Corporate Email</label>
+                                <div class="custom-input-wrapper">
+                                    {{ user_form.email }}
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                            </div>
+                        </div>
+                        {% if 'password' in user_form.fields %}
+                        <div class="col-md-12">
+                            <div class="form-floating-custom">
+                                <label>Initial Password</label>
+                                <div class="custom-input-wrapper">
+                                    {{ user_form.password }}
+                                    <i class="fas fa-key"></i>
+                                </div>
+                                <small class="text-muted mt-1 d-block opacity-75" style="font-size: 0.75rem;">Requires
+                                    reset on first authentication cycle.</small>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-4">
+                        <label class="form-label text-muted small mb-3">BIOMETRIC REPRESENTATION</label>
+                        <div class="image-upload-zone" id="uploadZone">
+                            {% if user_form.instance.profile_picture %}
+                            <img src="{{ user_form.instance.profile_picture.url }}"
+                                style="max-height: 100px; border-radius: 12px; margin-bottom: 1rem;">
+                            {% else %}
+                            <i class="fas fa-camera text-primary mb-2 fs-4"></i>
+                            <div class="small text-muted mb-2">Upload Profile Media</div>
+                            {% endif %}
+                            <div class="d-none">{{ user_form.profile_picture }}</div>
+                            <button type="button" class="btn btn-sm btn-outline-primary px-3">Choose File</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 2: Personal Demographics -->
+            <div class="col-lg-12">
+                <div class="form-section-card p-4 h-100 animate-appear" style="animation-delay: 0.1s;">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="section-icon-wrapper"
+                            style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                            <i class="fas fa-address-card"></i>
+                        </div>
+                        <h3 class="card-title text-primary h5 m-0">Personal Demographics</h3>
+                    </div>
+
+                    {% if user_form.errors or profile_form.errors %}
+                    <div class="alert alert-danger border-0 border-start border-4 border-danger rounded-3 mb-4 shadow-sm"
+                        style="background: rgba(239, 68, 68, 0.08);">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-exclamation-circle fs-5 me-3 text-danger"></i>
+                            <span class="small text-white opacity-90">Review highlighted fields.</span>
+                        </div>
+                        <ul class="mt-2 mb-0 small text-white-50">
+                            {% for field, errors in user_form.errors.items %}<li>{{ field }}: {{ errors|striptags }}
+                            </li>{% endfor %}
+                            {% for field, errors in profile_form.errors.items %}<li>{{ field }}: {{ errors|striptags }}
+                            </li>{% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-floating-custom">
+                                <label>First Name</label>
+                                <div class="custom-input-wrapper">{{ user_form.first_name }}<i
+                                        class="fas fa-i-cursor"></i></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating-custom">
+                                <label>Last Name</label>
+                                <div class="custom-input-wrapper">{{ user_form.last_name }}<i
+                                        class="fas fa-i-cursor"></i></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating-custom">
+                                <label>Contact Line</label>
+                                <div class="custom-input-wrapper">{{ user_form.phone }}<i class="fas fa-phone"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating-custom">
+                                <label>Birth Date</label>
+                                <div class="custom-input-wrapper">{{ user_form.date_of_birth }}<i
+                                        class="fas fa-calendar"></i></div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-floating-custom">
+                                <label>Address Details</label>
+                                <div class="custom-input-wrapper">{{ profile_form.address }}<i
+                                        class="fas fa-location-dot"></i></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating-custom">
+                                <label>Blood Group</label>
+                                <div class="custom-input-wrapper">{{ profile_form.blood_group }}<i
+                                        class="fas fa-droplet text-danger"></i></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating-custom">
+                                <label>Gender</label>
+                                <div class="custom-input-wrapper">{{ profile_form.gender }}<i
+                                        class="fas fa-venus-mars"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Full-Width Section: Professional Details -->
+        <div class="row g-4" id="employment_details_row">
+            <div class="col-lg-12">
+                <div class="form-section-card p-4 animate-appear" id="employment_details_card"
+                    style="animation-delay: 0.2s;">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="section-icon-wrapper"
+                            style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+                            <i class="fas fa-business-time"></i>
+                        </div>
+                        <h3 class="card-title text-primary h5 m-0">Professional Placement Details</h3>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-3">
+                            <div class="form-floating-custom">
+                                <label>Department</label>
+                                <div class="custom-input-wrapper">{{ profile_form.department }}<i
+                                        class="fas fa-sitemap"></i></div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-floating-custom">
+                                <label>Designation</label>
+                                <div class="custom-input-wrapper">{{ profile_form.designation }}<i
+                                        class="fas fa-user-tag"></i></div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-floating-custom">
+                                <label>Joining Date</label>
+                                <div class="custom-input-wrapper">{{ user_form.date_of_joining }}<i
+                                        class="fas fa-calendar-check"></i></div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-floating-custom">
+                                <label>Salary (CTC)</label>
+                                <div class="custom-input-wrapper">{{ profile_form.salary }}<i
+                                        class="fas fa-coins text-warning"></i></div>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-2">
+                            <div class="d-flex align-items-center justify-content-between p-3 rounded-3"
+                                style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--glass-border);">
+                                <div class="d-flex align-items-center">
+                                    <div class="p-2 rounded-2 bg-primary bg-opacity-10 me-3"><i
+                                            class="fas fa-power-off text-primary small"></i></div>
+                                    <div class="small fw-bold text-white">OPERATIONAL STATUS: ACTIVE</div>
+                                </div>
+                                <div class="form-check form-switch m-0">{{ profile_form.is_active }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="mt-4 d-flex justify-content-end gap-3 pb-5 animate-appear" style="animation-delay: 0.3s;">
+            <button type="reset" class="btn btn-outline py-2 px-4 text-muted">Reset</button>
+            <button type="submit" class="btn submit-btn-premium px-5 py-3">
+                <i class="fas fa-rocket me-2"></i> Confirm Onboarding
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Apply premium styling to all form inputs
+        const allInputs = document.querySelectorAll('input:not([type="checkbox"]):not([type="radio"]), select, textarea');
+        allInputs.forEach(input => {
+            input.classList.add('form-control', 'form-control-premium');
+        });
+
+        const roleSelect = document.querySelector('select[name="role"]');
+        const employmentRow = document.getElementById('employment_details_row');
+        const empIdGroup = document.getElementById('employee_id_group');
+
+        function toggleSections() {
+            const isHR = roleSelect.value === 'HR';
+            employmentRow.style.display = isHR ? 'none' : 'flex';
+            empIdGroup.style.display = isHR ? 'none' : 'block';
+
+            if (isHR) {
+                empIdGroup.querySelector('input').removeAttribute('required');
+                employmentRow.querySelectorAll('input, select, textarea').forEach(input => input.removeAttribute('required'));
+            } else {
+                empIdGroup.querySelector('input').setAttribute('required', '');
+            }
+        }
+
+        if (roleSelect) {
+            roleSelect.addEventListener('change', toggleSections);
+            toggleSections();
+        }
+
+        // Image upload preview
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.querySelector('input[name="profile_picture"]');
+
+        if (uploadZone && fileInput) {
+            uploadZone.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', function () {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        uploadZone.innerHTML = `<img src="${e.target.result}" style="max-height: 100px; border-radius: 12px; border: 2px solid var(--primary-color);">
+                                                <div class="small text-primary mt-2 fw-bold">Image Selected</div>`;
+                    }
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

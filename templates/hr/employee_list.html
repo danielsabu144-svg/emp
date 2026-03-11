@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+
+{% block title %}Employee Directory - EMS Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .premium-header {
+        background: linear-gradient(135deg, rgba(13, 148, 136, 0.1) 0%, rgba(30, 58, 138, 0.1) 100%);
+        padding: 3rem 2rem;
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        margin-bottom: 3rem;
+    }
+
+    .directory-card {
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .search-bar-premium {
+        background: rgba(2, 6, 23, 0.8);
+        border: 1px solid rgba(13, 148, 136, 0.3);
+        border-radius: 12px;
+        padding: 0.75rem 1.25rem;
+        color: white;
+        transition: all 0.3s ease;
+    }
+
+    .search-bar-premium:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 20px rgba(13, 148, 136, 0.2);
+        outline: none;
+    }
+
+    .employee-table tr,
+    .employee-table td,
+    .employee-table th {
+        vertical-align: middle;
+        padding: 1.5rem 1.25rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        color: var(--text-secondary) !important;
+        background: transparent !important;
+    }
+
+    .employee-table tr:hover {
+        background: rgba(255, 255, 255, 0.03) !important;
+    }
+
+    .employee-table thead th {
+        background: rgba(13, 148, 136, 0.1) !important;
+        border-bottom: 2px solid rgba(13, 148, 136, 0.3) !important;
+        color: var(--primary-light) !important;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1.5px;
+        padding: 1.5rem 1.25rem;
+    }
+
+    .avatar-circle {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        background: var(--primary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 1rem;
+        box-shadow: 0 8px 15px rgba(13, 148, 136, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .status-badge {
+        padding: 0.6rem 1.2rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-active {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .status-inactive {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .action-btn {
+        width: 40px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: rgba(255, 255, 255, 0.03);
+        color: #94a3b8;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .action-btn:hover {
+        transform: translateY(-3px) scale(1.05);
+        background: var(--primary-gradient);
+        color: white;
+        box-shadow: 0 10px 20px rgba(13, 148, 136, 0.3);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .action-btn.btn-danger-hover:hover {
+        background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
+        box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+    }
+
+    .action-btn.action-delete {
+        background: rgba(239, 68, 68, 0.12);
+        color: #f87171;
+        border-color: rgba(239, 68, 68, 0.25);
+    }
+
+    .action-btn.action-delete:hover {
+        background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
+        color: white;
+        box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="premium-header fade-in">
+    <div class="row align-items-center">
+        <div class="col-md-7">
+            <h1 class="page-title">Executive Directory</h1>
+            <p class="page-subtitle">Master oversight of your organization's intellectual capital and personnel.</p>
+        </div>
+        <div class="col-md-5 text-md-end">
+            <a href="{% url 'add_employee' %}" class="btn btn-primary btn-lg px-4 shadow-lg rounded-4">
+                <i class="fas fa-plus-circle me-2"></i> Onboard Talent
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="directory-card fade-in" style="animation-delay: 0.2s;">
+    <div class="card-header border-0 bg-transparent p-4">
+        <form method="get" class="row g-3">
+            <div class="col-md-10">
+                <div class="position-relative">
+                    <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                    <input type="text" name="search" class="search-bar-premium w-100 ps-5"
+                        placeholder="Filter by name, corporate ID, or digital identity..." value="{{ search_query }}">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100 h-100 rounded-3">
+                    Filter View
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table employee-table m-0">
+            <thead>
+                <tr>
+                    <th>Corporate ID</th>
+                    <th>Personnel</th>
+                    <th>Functional Unit</th>
+                    <th>Ecosystem Status</th>
+                    <th>Tenure Start</th>
+                    <th class="text-center">Operations</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for employee in employees %}
+                <tr>
+                    <td>
+                        <span
+                            class="badge bg-dark text-primary-light border border-secondary border-opacity-25 px-3 py-2">
+                            {{ employee.employee_id }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-3">
+                            {% if employee.profile_picture %}
+                            <img src="{{ employee.profile_picture.url }}" class="avatar-circle"
+                                style="object-fit: cover;">
+                            {% else %}
+                            <div class="avatar-circle">
+                                {{ employee.first_name.0 }}{{ employee.last_name.0 }}
+                            </div>
+                            {% endif %}
+                            <div>
+                                <div class="fw-bold text-white fs-6">{{ employee.get_full_name }}</div>
+                                <div class="text-muted small">{{ employee.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if employee.profile %}
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-layer-group text-primary opacity-50"></i>
+                            <span class="fw-medium text-white">{{ employee.profile.get_department_display }}</span>
+                        </div>
+                        {% else %}
+                        <span class="text-muted italic small">Administrative / HR</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if employee.is_active %}
+                        <span class="status-badge status-active">
+                            <i class="fas fa-circle-check me-1"></i> Active
+                        </span>
+                        {% else %}
+                        <span class="status-badge status-inactive">
+                            <i class="fas fa-circle-xmark me-1"></i> Inactive
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="text-muted">
+                            <i class="far fa-calendar-alt me-2"></i> {{ employee.date_joined|date:"M d, Y" }}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="{% url 'edit_employee' employee.id %}" class="action-btn" title="Refine Profile">
+                                <i class="fas fa-user-pen"></i>
+                            </a>
+                            <a href="{% url 'employee_detail' employee.id %}" class="action-btn" title="Executive View">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'deactivate_employee' employee.id %}"
+                                class="action-btn {% if employee.is_active %}btn-danger-hover{% endif %}"
+                                title="{% if employee.is_active %}Revoke Access{% else %}Grant Access{% endif %}">
+                                <i
+                                    class="fas {% if employee.is_active %}fa-user-lock{% else %}fa-user-check{% endif %}"></i>
+                            </a>
+                            {% if employee.can_be_deleted %}
+                            <form method="post" action="{% url 'delete_employee' employee.id %}" class="d-inline"
+                                onsubmit="return confirm('Delete this employee profile? This will remove the employee account and related records.');">
+                                {% csrf_token %}
+                                <button type="submit" class="action-btn action-delete" title="Delete Employee">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5">
+                        <div class="p-5">
+                            <i class="fas fa-user-slash fa-3x text-muted mb-3 opacity-25"></i>
+                            <h5 class="text-white opacity-50">No personnel records found</h5>
+                            <p class="text-muted">Adjust your filters or onboard new talent to populate the directory.
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

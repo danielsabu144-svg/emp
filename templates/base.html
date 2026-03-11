@@ -1,0 +1,670 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Employee Management System - Streamline HR operations with our comprehensive HRMS solution">
+    <title>{% block title %}Employee Management System{% endblock %}</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Custom CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    {% block extra_css %}{% endblock %}
+    <style>
+        :root {
+            --primary-color: #0d9488;
+            --primary-light: #14b8a6;
+            --primary-dark: #0f172a;
+            --primary-gradient: linear-gradient(135deg, #0d9488 0%, #0891b2 100%);
+            --sidebar-dark: #020617;
+            --sidebar-light: #0f172a;
+            --bg-light: #f1f5f9;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+            {
+            % if user.is_authenticated %
+        }
+
+        body {
+            background-color: #020617;
+            color: #f8fafc;
+            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            background: linear-gradient(180deg, var(--sidebar-dark) 0%, var(--sidebar-light) 100%);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.2);
+            width: 280px;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1040;
+            transition: var(--transition-base);
+        }
+
+        .text-muted {
+            --bs-text-opacity: 1;
+            color: rgb(255 255 255 / 75%) !important;
+        }
+
+        /* Collapsed state for desktop toggle */
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-logo {
+            padding: 2.5rem 1.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #0d9488 0%, #1e3a8a 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.75rem !important;
+            font-weight: 800 !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0 1rem;
+            margin: 0;
+        }
+
+        .nav-item {
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #94a3b8 !important;
+            padding: 0.875rem 1.25rem !important;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: var(--transition-base);
+            font-weight: 500;
+        }
+
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: #ffffff !important;
+            background: var(--primary-gradient) !important;
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+            transform: translateX(4px);
+        }
+
+        /* Content Area */
+        .main-content {
+            background: #020617;
+            min-height: 100vh;
+            padding: 2.5rem;
+            margin-left: 280px;
+            transition: var(--transition-base);
+            width: calc(100% - 280px);
+        }
+
+        .main-content.collapsed {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        /* Standardized Components */
+        .page-header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .page-title {
+            background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            font-size: 2rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .page-subtitle {
+            color: #94a3b8 !important;
+            font-weight: 500;
+            font-size: 1rem;
+        }
+
+        .card {
+            background: #0f172a !important;
+            border: 1px solid #1e293b !important;
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4) !important;
+            color: #f8fafc !important;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #1e293b !important;
+            background: rgba(13, 148, 136, 0.05) !important;
+        }
+
+        .card-title {
+            color: white !important;
+            font-weight: 700 !important;
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        /* Form Standard Design */
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.875rem;
+        }
+
+        .form-control {
+            display: block;
+            width: 100%;
+            padding: 0.875rem 1.25rem;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: white;
+            background-color: #020617;
+            background-clip: padding-box;
+            border: 2px solid #1e293b;
+            border-radius: 12px;
+            transition: var(--transition-base);
+        }
+
+        .form-control:focus {
+            color: white;
+            background-color: #020617;
+            border-color: #0d9488;
+            outline: 0;
+            box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: var(--transition-base);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            border: none;
+            color: white !important;
+            box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.2);
+        }
+
+        .btn-secondary {
+            background: #64748b;
+            border: none;
+            color: white !important;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            border: none;
+            color: white !important;
+        }
+
+        .btn-success {
+            background: #10b981;
+            border: none;
+            color: white !important;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            border: none;
+            color: white !important;
+        }
+
+        .btn-primary:hover,
+        .btn-secondary:hover,
+        .btn-danger:hover,
+        .btn-success:hover,
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+            color: white !important;
+        }
+
+        .btn-outline {
+            border: 1.5px solid #e2e8f0;
+            background: white;
+            color: #475569;
+        }
+
+        .btn-outline:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            color: #1e293b;
+        }
+
+        /* Table Design */
+        .table-container {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #1e293b;
+        }
+
+        .table {
+            width: 100%;
+            margin-bottom: 0;
+            background: transparent !important;
+            border-collapse: collapse;
+            color: #f8fafc !important;
+        }
+
+        .table th {
+            background: rgba(13, 148, 136, 0.1) !important;
+            color: var(--primary-light) !important;
+            font-weight: 700 !important;
+            padding: 1rem;
+            text-align: left;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid #1e293b !important;
+        }
+
+        .table td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #1e293b;
+            color: #94a3b8;
+            font-size: 0.875rem;
+            background: transparent !important;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02) !important;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 1.5rem;
+            }
+
+            .main-content.sidebar-open {
+                transform: translateX(280px);
+            }
+
+            .mobile-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(4px);
+                z-index: 1030;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+
+            .mobile-overlay.show {
+                display: block;
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+        }
+
+        /* Generic Utilities */
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+            {
+            % endif %
+        }
+    </style>
+</head>
+
+<body>
+    {% if user.is_authenticated %}
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <i class="fas fa-rocket"></i> CloudHRM
+        </div>
+
+        <nav>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{% url 'dashboard' %}"
+                        class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+
+                {% if user.is_hr %}
+                <!-- HR/Admin Menu -->
+                <li class="nav-item">
+                    <a href="{% url 'employee_list' %}"
+                        class="nav-link {% if 'employee' in request.path %}active{% endif %}">
+                        <i class="fas fa-users"></i>
+                        <span>Employees</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{% url 'attendance_list' %}"
+                        class="nav-link {% if 'attendance' in request.path %}active{% endif %}">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Attendance</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{% url 'leave_requests' %}"
+                        class="nav-link {% if 'leave' in request.path %}active{% endif %}">
+                        <i class="fas fa-calendar-times"></i>
+                        <span>Leave Requests</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{% url 'payroll_list' %}"
+                        class="nav-link {% if 'payroll' in request.path %}active{% endif %}">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span>Payroll</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{% url 'project_list' %}"
+                        class="nav-link {% if 'projects' in request.path %}active{% endif %}">
+                        <i class="fas fa-project-diagram"></i>
+                        <span>Project Registry</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'all_tasks' %}"
+                        class="nav-link {% if request.resolver_match.url_name == 'all_tasks' or request.resolver_match.url_name == 'task_detail' or request.resolver_match.url_name == 'task_create' %}active{% endif %}">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Task Assignments</span>
+                    </a>
+                </li>
+
+                {% if user.is_superuser and user.role != 'HR' %}
+                <li class="nav-item">
+                    <a href="{% url 'admin_task_summary' %}"
+                        class="nav-link {% if request.resolver_match.url_name == 'admin_task_summary' %}active{% endif %}">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Executive Oversight</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                <li class="nav-item">
+                    <a href="{% url 'send_notification' %}"
+                        class="nav-link {% if 'send' in request.path %}active{% endif %}">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Send Notice</span>
+                    </a>
+                </li>
+                {% else %}
+                <!-- Employee Menu -->
+                <li class="nav-item">
+                    <a href="{% url 'my_profile' %}"
+                        class="nav-link {% if 'profile' in request.path %}active{% endif %}">
+                        <i class="fas fa-user"></i>
+                        <span>My Profile</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{% url 'my_attendance' %}"
+                        class="nav-link {% if 'attendance' in request.path %}active{% endif %}">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>My Attendance</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{% url 'my_leaves' %}" class="nav-link {% if 'leave' in request.path %}active{% endif %}">
+                        <i class="fas fa-calendar-times"></i>
+                        <span>My Leaves</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{% url 'my_payroll' %}"
+                        class="nav-link {% if 'payroll' in request.path %}active{% endif %}">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span>My Payroll</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{% url 'my_tasks' %}" class="nav-link {% if 'tasks' in request.path %}active{% endif %}">
+                        <i class="fas fa-tasks"></i>
+                        <span>My Tasks</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{% url 'notifications' %}"
+                        class="nav-link {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'chatbot' %}" class="nav-link {% if 'chatbot' in request.path %}active{% endif %}">
+                        <i class="fas fa-robot"></i>
+                        <span>HR Chatbot</span>
+                    </a>
+                </li>
+                {% endif %}
+
+
+                <li class="nav-item">
+                    <a href="{% url 'logout' %}" class="nav-link">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- User Info at Bottom -->
+        <!-- <div style="position: absolute; bottom: 20px; left: 20px; right: 20px;">
+            <div class="card" style="padding: 1rem;">
+                <div class="d-flex align-items-center gap-2">
+                    {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="Profile"
+                        style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                    {% else %}
+                    <div
+                        style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;">
+                        {{ user.first_name.0 }}{{ user.last_name.0 }}
+                    </div>
+                    {% endif %}
+                    <div style="flex: 1; min-width: 0;">
+                        <div
+                            style="font-weight: 600; font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            {{ user.get_full_name }}
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">
+                            {% if user.is_superuser %}
+                            System Administrator
+                            {% else %}
+                            {{ user.get_role_display }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> -->
+    </aside>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="{% if user.is_authenticated %}main-content{% else %}container{% endif %}">
+        {% if user.is_authenticated %}
+        <div class="mobile-overlay" id="mobileOverlay"></div>
+        <button class="btn btn-primary" id="menuToggle" aria-label="Toggle Menu">
+            <i class="fas fa-bars"></i>
+        </button>
+        {% endif %}
+
+        <!-- Messages -->
+        {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Page Content -->
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Chart.js for Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Custom JavaScript -->
+    <script>
+        // Mobile Menu Toggle Logic
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('mobileOverlay');
+        const mainContent = document.querySelector('.main-content');
+
+        if (menuToggle && sidebar) {
+            const toggleSidebar = () => {
+                // Mobile behaviour (<= 1024px): slide-in sidebar with overlay
+                if (window.innerWidth <= 1024) {
+                    sidebar.classList.toggle('show');
+                    overlay.classList.toggle('show');
+                    if (mainContent) mainContent.classList.toggle('sidebar-open');
+                } else {
+                    // Desktop behaviour: collapse/expand sidebar and stretch content
+                    sidebar.classList.toggle('collapsed');
+                    if (mainContent) mainContent.classList.toggle('collapsed');
+                }
+            };
+
+            menuToggle.addEventListener('click', toggleSidebar);
+            overlay.addEventListener('click', toggleSidebar);
+
+            // Handle window resize - reset mobile classes when going to desktop
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 1024) {
+                    sidebar.classList.remove('show');
+                    overlay.classList.remove('show');
+                    if (mainContent) mainContent.classList.remove('sidebar-open');
+                }
+            });
+        }
+
+        // Auto-hide alerts after 5 seconds
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-20px)';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>
