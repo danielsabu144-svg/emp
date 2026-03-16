@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from accounts.models import User
 from attendance.models import Attendance
-from leave_management.models import LeaveBalance
+from leave_management.models import CASUAL_LEAVE_NAME, LeaveBalance
 
 from .forms import NotificationForm
 from .models import ChatHistory, ChatbotResponse, Notification
@@ -47,7 +47,12 @@ def get_chatbot_response(question, user):
 
     if any(word in question for word in ['leave', 'balance', 'remaining']):
         current_year = timezone.localdate().year
-        leave_balances = LeaveBalance.objects.filter(employee=user, year=current_year)
+        leave_balances = LeaveBalance.objects.filter(
+            employee=user,
+            year=current_year,
+            leave_type__name=CASUAL_LEAVE_NAME,
+            leave_type__is_active=True,
+        )
 
         if leave_balances.exists():
             response = "Your leave balance:\n\n"
@@ -122,7 +127,7 @@ def get_chatbot_response(question, user):
             "HR Policies:\n\n"
             "- Working hours: 9 AM - 6 PM\n"
             "- Lunch break: 1 hour\n"
-            "- Leave types: Casual, Sick, Earned\n"
+            "- Leave type: Casual Leave (12 days per year)\n"
             "- Attendance is mandatory\n"
             "- The system flags late entries, early exits, and half-days automatically\n\n"
             "For detailed policies, please contact HR."

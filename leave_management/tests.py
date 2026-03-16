@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from accounts.models import User
 
-from .models import Leave, LeaveBalance, LeaveType, current_leave_year
+from .models import CASUAL_LEAVE_NAME, Leave, LeaveBalance, LeaveType, current_leave_year
 
 
 @override_settings(ALLOWED_HOSTS=['testserver', 'localhost'])
@@ -22,6 +22,13 @@ class LeaveManagementTests(TestCase):
             first_name='Hari',
             last_name='Manager',
         )
+        self.leave_type, _ = LeaveType.objects.update_or_create(
+            name=CASUAL_LEAVE_NAME,
+            defaults={
+                'max_days_per_year': 12,
+                'is_active': True,
+            },
+        )
         self.employee = User.objects.create_user(
             username='leave-emp',
             email='leave-emp@example.com',
@@ -29,11 +36,6 @@ class LeaveManagementTests(TestCase):
             role='EMPLOYEE',
             first_name='Esha',
             last_name='Employee',
-        )
-        self.leave_type = LeaveType.objects.create(
-            name='Casual Leave',
-            max_days_per_year=5,
-            is_active=True,
         )
         self.leave = Leave.objects.create(
             employee=self.employee,
@@ -59,14 +61,15 @@ class LeaveManagementTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Casual Leave')
 
-    def test_new_leave_type_creates_balances_for_existing_employees(self):
+    def test_non_casual_leave_type_is_deactivated_and_does_not_create_balances(self):
         existing_balance_count = LeaveBalance.objects.filter(employee=self.employee).count()
 
         new_leave_type = LeaveType.objects.create(
             name='Sick Leave',
-            max_days_per_year=5,
+            max_days_per_year=10,
             is_active=True,
         )
+        new_leave_type.refresh_from_db()
 
         self.assertEqual(
             LeaveBalance.objects.filter(
@@ -74,12 +77,10 @@ class LeaveManagementTests(TestCase):
                 leave_type=new_leave_type,
                 year=current_leave_year(),
             ).count(),
-            1,
+            0,
         )
-        self.assertGreater(
-            LeaveBalance.objects.filter(employee=self.employee).count(),
-            existing_balance_count,
-        )
+        self.assertEqual(LeaveBalance.objects.filter(employee=self.employee).count(), existing_balance_count)
+        self.assertFalse(new_leave_type.is_active)
 
     def test_apply_leave_requires_leave_type_selection(self):
         self.client.force_login(self.employee)
@@ -99,10 +100,10 @@ class LeaveManagementTests(TestCase):
         messages = [message.message for message in get_messages(response.wsgi_request)]
         self.assertIn('Please select a leave type.', messages)
 
-    def test_apply_leave_page_shows_five_day_max_limit(self):
+    def test_apply_leave_page_shows_twelve_day_max_limit(self):
         self.client.force_login(self.employee)
 
         response = self.client.get(reverse('apply_leave'))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Casual Leave (Max: 5 days)')
+        self.assertContains(response, 'Casual Leave (Max: 12 days)')

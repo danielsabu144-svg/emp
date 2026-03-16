@@ -78,7 +78,7 @@ class Payroll(models.Model):
 
     def calculate_net_salary(self):
         """Calculate net salary based on attendance and total deductions"""
-        self.net_salary = money(self.gross_salary - self.total_deductions)
+        self.net_salary = money(max(self.gross_salary - self.total_deductions, ZERO))
         return self.net_salary
     
     @property

@@ -1,10 +1,12 @@
 from django.contrib.messages import get_messages
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from datetime import date, time
 
 from accounts.models import User
+from attendance.models import Attendance
 from employees.models import EmployeeProfile
-from leave_management.models import LeaveBalance, LeaveType
+from leave_management.models import LeaveBalance, LeaveType, current_leave_year
 
 
 @override_settings(ALLOWED_HOSTS=['testserver', 'localhost'])
@@ -115,16 +117,19 @@ class EmployeeAdminDeleteTests(TestCase):
 class EmployeeDashboardLeaveBalanceTests(TestCase):
     def setUp(self):
         self.client = Client()
-        self.leave_type_a = LeaveType.objects.create(
+        self.leave_type, _ = LeaveType.objects.update_or_create(
             name='Casual Leave',
-            max_days_per_year=12,
-            is_active=True,
+            defaults={
+                'max_days_per_year': 12,
+                'is_active': True,
+            },
         )
-        self.leave_type_b = LeaveType.objects.create(
+        self.inactive_leave_type = LeaveType.objects.create(
             name='Sick Leave',
             max_days_per_year=10,
             is_active=True,
         )
+        self.inactive_leave_type.refresh_from_db()
         self.employee = User.objects.create_user(
             username='dashboard-emp',
             email='dashboard-emp@example.com',
@@ -140,8 +145,14 @@ class EmployeeDashboardLeaveBalanceTests(TestCase):
             gender='M',
             salary=20000,
         )
-        LeaveBalance.objects.filter(employee=self.employee, leave_type=self.leave_type_a).update(used_leaves=3)
-        LeaveBalance.objects.filter(employee=self.employee, leave_type=self.leave_type_b).update(used_leaves=2)
+        LeaveBalance.objects.filter(employee=self.employee, leave_type=self.leave_type).update(used_leaves=3)
+        LeaveBalance.objects.create(
+            employee=self.employee,
+            leave_type=self.inactive_leave_type,
+            year=current_leave_year(),
+            total_leaves=10,
+            used_leaves=2,
+        )
 
     def test_dashboard_uses_total_remaining_leave_balance(self):
         self.client.force_login(self.employee)
@@ -149,11 +160,65 @@ class EmployeeDashboardLeaveBalanceTests(TestCase):
         response = self.client.get(reverse('employee_dashboard'))
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context['total_remaining_leaves'], 17.0)
-        self.assertContains(response, '17')
+        self.assertEqual(response.context['total_remaining_leaves'], 9.0)
+        self.assertContains(response, '9')
         self.assertContains(response, 'Remaining: 9 days')
         self.assertNotContains(response, '{{ balance.remaining_leaves }}')
+        self.assertFalse(self.inactive_leave_type.is_active)
 
     def test_leave_balance_usage_percentage_is_relative_to_total(self):
-        balance = LeaveBalance.objects.get(employee=self.employee, leave_type=self.leave_type_a)
+        balance = LeaveBalance.objects.get(employee=self.employee, leave_type=self.leave_type)
         self.assertEqual(round(balance.usage_percentage, 2), 25.0)
+
+
+@override_settings(ALLOWED_HOSTS=['testserver', 'localhost'])
+class EmployeeDetailAttendanceIntelligenceTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.hr = User.objects.create_user(
+            username='detail-hr',
+            email='detail-hr@example.com',
+            password='testpass123',
+            role='HR',
+        )
+        self.employee = User.objects.create_user(
+            username='detail-employee',
+            email='detail-employee@example.com',
+            password='testpass123',
+            role='EMPLOYEE',
+            first_name='Detail',
+            last_name='Employee',
+        )
+        EmployeeProfile.objects.create(
+            user=self.employee,
+            department='IT',
+            designation='JUNIOR',
+            gender='M',
+            salary=22000,
+        )
+
+    def test_absent_record_does_not_render_active_session_in_attendance_intelligence(self):
+        Attendance.objects.create(
+            employee=self.employee,
+            date=date(2026, 3, 3),
+        )
+        self.client.force_login(self.hr)
+
+        response = self.client.get(reverse('employee_detail', args=[self.employee.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'ABSENT')
+        self.assertNotContains(response, 'Active Session')
+
+    def test_open_attendance_session_is_labeled_active_session(self):
+        Attendance.objects.create(
+            employee=self.employee,
+            date=date(2026, 3, 4),
+            check_in=time(hour=9, minute=0),
+        )
+        self.client.force_login(self.hr)
+
+        response = self.client.get(reverse('employee_detail', args=[self.employee.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Active Session')

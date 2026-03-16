@@ -224,10 +224,22 @@
                         {% for record in month_attendance %}
                         <tr>
                             <td>{{ record.date|date:"F d, Y" }}</td>
-                            <td><span class="text-primary-light fw-bold">{{ record.check_in|time:"h:i A" }}</span>
+                            <td>
+                                {% if record.check_in %}
+                                <span class="text-primary-light fw-bold">{{ record.check_in|time:"h:i A" }}</span>
+                                {% else %}
+                                <span class="text-muted">--</span>
+                                {% endif %}
                             </td>
-                            <td><span class="text-muted">{{ record.check_out|time:"h:i A"|default:"Active Session"
-                                    }}</span></td>
+                            <td>
+                                {% if record.check_out %}
+                                <span class="text-muted">{{ record.check_out|time:"h:i A" }}</span>
+                                {% elif record.check_in %}
+                                <span class="text-warning">Active Session</span>
+                                {% else %}
+                                <span class="text-muted">--</span>
+                                {% endif %}
+                            </td>
                             <td>
                                 {% if record.final_status == 'PRESENT' %}
                                 <span class="text-success fw-bold"><i class="fas fa-circle fs-xs me-1"></i>

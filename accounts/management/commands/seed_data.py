@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from accounts.models import User
 from employees.models import EmployeeProfile
-from leave_management.models import LeaveType, LeaveBalance
+from leave_management.models import CASUAL_LEAVE_DAYS_PER_YEAR, CASUAL_LEAVE_NAME, LeaveType, LeaveBalance
 from chatbot.models import ChatbotResponse
 import datetime
 
@@ -63,19 +63,15 @@ class Command(BaseCommand):
             self.stdout.write('Created HR Admin: admin / admin123')
 
         # 3. Create Leave Types
-        leave_types = [
-            {'name': 'Casual Leave', 'max_days': 5},
-            {'name': 'Sick Leave', 'max_days': 5},
-            {'name': 'Earned Leave', 'max_days': 5},
-        ]
-        lt_objects = []
-        for lt_data in leave_types:
-            lt, _ = LeaveType.objects.get_or_create(
-                name=lt_data['name'],
-                defaults={'max_days_per_year': lt_data['max_days']}
-            )
-            lt_objects.append(lt)
-        self.stdout.write('Created Leave Types.')
+        casual_leave, _ = LeaveType.objects.update_or_create(
+            name=CASUAL_LEAVE_NAME,
+            defaults={
+                'max_days_per_year': CASUAL_LEAVE_DAYS_PER_YEAR,
+                'is_active': True,
+            }
+        )
+        LeaveType.objects.exclude(pk=casual_leave.pk).update(is_active=False)
+        self.stdout.write('Configured Casual Leave policy.')
 
         # 4. Create Employees
         employees_data = [
@@ -111,19 +107,18 @@ class Command(BaseCommand):
                 )
 
                 # Initialize Leave Balances
-                for lt in lt_objects:
-                    LeaveBalance.objects.get_or_create(
-                        employee=user,
-                        leave_type=lt,
-                        year=current_year,
-                        defaults={'total_leaves': lt.max_days_per_year}
-                    )
+                LeaveBalance.objects.get_or_create(
+                    employee=user,
+                    leave_type=casual_leave,
+                    year=current_year,
+                    defaults={'total_leaves': casual_leave.max_days_per_year}
+                )
                 
                 self.stdout.write(f"Created Employee: {emp['user']} / emp123")
 
         # 5. Create Chatbot Responses
         chatbot_data = [
-            {'key': 'leave policy', 'res': 'Employees are entitled to Casual, Sick, and Earned leaves. Applications must be submitted 2 days in advance.'},
+            {'key': 'leave policy', 'res': 'Employees are entitled to 12 days of Casual Leave per year. Applications must be submitted 2 days in advance.'},
             {'key': 'office hours', 'res': 'Our office operates from 9:00 AM to 6:00 PM, Monday to Friday.'},
             {'key': 'salary date', 'res': 'Salaries are usually processed on the 1st of every month.'},
         ]

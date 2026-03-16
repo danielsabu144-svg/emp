@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from accounts.models import User
 from .models import EmployeeProfile
 from attendance.models import Attendance
-from leave_management.models import Leave, LeaveBalance, ensure_leave_balances_for_employee
+from leave_management.models import CASUAL_LEAVE_NAME, Leave, LeaveBalance, ensure_leave_balances_for_employee
 from payroll.models import Payroll
 from chatbot.models import Notification
 
@@ -135,6 +135,7 @@ def employee_dashboard(request):
     ensure_leave_balances_for_employee(request.user, current_year)
     leave_balances = list(
         LeaveBalance.objects.filter(employee=request.user, year=current_year)
+        .filter(leave_type__name=CASUAL_LEAVE_NAME, leave_type__is_active=True)
         .select_related('leave_type')
         .order_by('leave_type__name')
     )

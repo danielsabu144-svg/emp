@@ -211,6 +211,10 @@ def mark_as_paid(request, payroll_id):
         return redirect('dashboard')
     
     payroll = get_object_or_404(Payroll, id=payroll_id)
+    if payroll.is_paid:
+        messages.info(request, f'Payroll for {payroll.employee.get_full_name()} is already marked as paid.')
+        return redirect('payroll_detail', payroll_id=payroll.id)
+
     payroll.is_paid = True
     payroll.payment_date = timezone.localdate()
     payroll.save()

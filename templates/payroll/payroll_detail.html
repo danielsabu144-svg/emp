@@ -98,12 +98,12 @@
                 <div class="mb-2"><span class="text-muted small">Employee Name:</span> <span class="fw-bold">{{ payroll.employee.get_full_name }}</span></div>
                 <div class="mb-2"><span class="text-muted small">Employee ID:</span> <span class="fw-bold">{{ payroll.employee.employee_id }}</span></div>
                 <div class="mb-2"><span class="text-muted small">Department:</span> <span
-                        class="fw-bold text-uppercase">{{ payroll.employee.profile.get_department_display }}</span>
+                        class="fw-bold text-uppercase">{% if payroll.employee.profile %}{{ payroll.employee.profile.get_department_display }}{% else %}Not Available{% endif %}</span>
                 </div>
             </div>
             <div class="col-6 text-end">
                 <div class="mb-2"><span class="text-muted small">Designation:</span> <span class="fw-bold">
-                        {{ payroll.employee.profile.get_designation_display }}</span></div>
+                        {% if payroll.employee.profile %}{{ payroll.employee.profile.get_designation_display }}{% else %}Not Available{% endif %}</span></div>
                 <div class="mb-2"><span class="text-muted small">Payment Date:</span> <span class="fw-bold">
                         {{ payroll.payment_date|date:"M d, Y"|default:"Pending" }}</span></div>
                 <div class="mb-2"><span class="text-muted small">Payment Status:</span>

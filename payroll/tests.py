@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 
 from django.contrib.messages import get_messages
@@ -55,6 +56,23 @@ class PayrollModelTests(TestCase):
         )
 
         self.assertEqual(payroll.month_name, 'Month 13')
+
+    def test_calculate_net_salary_never_returns_negative_value(self):
+        payroll = Payroll(
+            employee=self.employee,
+            month=3,
+            year=2026,
+            basic_salary=Decimal('10000.00'),
+            allowances=Decimal('0.00'),
+            deductions=Decimal('15000.00'),
+            working_days=30,
+            present_days=Decimal('30.0'),
+            net_salary=Decimal('0.00'),
+        )
+
+        payroll.calculate_net_salary()
+
+        self.assertEqual(payroll.net_salary, Decimal('0.00'))
 
 
 @override_settings(ALLOWED_HOSTS=['testserver', 'localhost'])
@@ -127,6 +145,37 @@ class PayrollViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.payroll.refresh_from_db()
         self.assertTrue(self.payroll.is_paid)
+
+    def test_mark_as_paid_preserves_existing_payment_date(self):
+        self.payroll.is_paid = True
+        self.payroll.payment_date = date(2026, 3, 31)
+        self.payroll.save(update_fields=['is_paid', 'payment_date'])
+        self.client.force_login(self.hr)
+
+        response = self.client.post(reverse('mark_as_paid', args=[self.payroll.id]), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.payroll.refresh_from_db()
+        self.assertEqual(self.payroll.payment_date, date(2026, 3, 31))
+
+    def test_update_payroll_rejects_negative_adjustments(self):
+        self.client.force_login(self.hr)
+
+        response = self.client.post(
+            reverse('update_payroll', args=[self.payroll.id]),
+            {
+                'allowances': '-1.00',
+                'deductions': '-5.00',
+                'remarks': 'Invalid negative values',
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.payroll.refresh_from_db()
+        self.assertEqual(self.payroll.allowances, Decimal('2000.00'))
+        self.assertEqual(self.payroll.deductions, Decimal('1000.00'))
+        self.assertIn('allowances', response.context['form'].errors)
+        self.assertIn('deductions', response.context['form'].errors)
 
     def test_generate_payroll_rejects_invalid_period_input(self):
         self.client.force_login(self.hr)

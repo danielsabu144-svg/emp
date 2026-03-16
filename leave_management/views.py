@@ -3,11 +3,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from .models import (
+    CASUAL_LEAVE_NAME,
     Leave,
     LeaveBalance,
-    LeaveType,
     current_leave_year,
     ensure_leave_balances_for_employee,
+    get_active_leave_types,
 )
 from chatbot.models import Notification
 
@@ -119,7 +120,9 @@ def my_leaves(request):
     ensure_leave_balances_for_employee(request.user, current_year)
     leave_balances = LeaveBalance.objects.filter(
         employee=request.user,
-        year=current_year
+        year=current_year,
+        leave_type__name=CASUAL_LEAVE_NAME,
+        leave_type__is_active=True,
     ).select_related('leave_type')
     
     context = {
@@ -161,7 +164,7 @@ def apply_leave(request):
             return redirect('apply_leave')
         
         # Create leave request
-        leave_type = get_object_or_404(LeaveType, id=leave_type_id)
+        leave_type = get_object_or_404(get_active_leave_types(), id=leave_type_id)
         
         leave = Leave.objects.create(
             employee=request.user,
@@ -175,7 +178,7 @@ def apply_leave(request):
         messages.success(request, 'Leave application submitted successfully.')
         return redirect('my_leaves')
     
-    leave_types = LeaveType.objects.filter(is_active=True).order_by('name')
+    leave_types = get_active_leave_types()
 
     if not leave_types.exists():
         messages.warning(request, 'No active leave types are configured yet. Please contact HR.')
